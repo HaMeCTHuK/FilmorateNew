@@ -45,12 +45,6 @@ public class DirectorService extends AbstractService<Director> {
         return films;
     }
 
-
-    @Override
-    public void validateParameters(Long id, Long otherId) {
-        throw new UnsupportedOperationException();
-    }
-
     @Override
     public Director create(Director data) {
         return abstractStorage.create(data);
@@ -72,6 +66,11 @@ public class DirectorService extends AbstractService<Director> {
     }
 
     @Override
+    public void delete(Long id) {
+        abstractStorage.delete(id);
+    }
+
+    @Override
     public void validateParameter(Long directorId) {
         if (directorId == null) {
             throw new IncorrectParameterException("Некорректные параметры поля, проверь null");
@@ -83,6 +82,13 @@ public class DirectorService extends AbstractService<Director> {
 
     @Override
     public void validate(Director data) {
+        if (data.getId() <= 0) {
+            throw new IncorrectParameterException("некорректные данные режисера");
+        }
+    }
+
+    @Override
+    public void validateParameters(Long id, Long otherId) {
         throw new UnsupportedOperationException();
     }
 
