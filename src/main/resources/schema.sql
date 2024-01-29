@@ -4,6 +4,12 @@ CREATE TABLE IF NOT EXISTS MPARating
   rating_name   VARCHAR(255)
 );
 
+CREATE TABLE IF NOT EXISTS DIRECTORS
+(
+  id            INT NOT NULL PRIMARY KEY,
+  director_name VARCHAR(255)
+);
+
 CREATE TABLE IF NOT EXISTS GENRES
 (
   id            INT NOT NULL PRIMARY KEY,
@@ -18,7 +24,8 @@ CREATE TABLE IF NOT EXISTS FILMS
   release_date  DATE,
   duration      INT,
   rating        INT default 0,
-  mpa_rating_id INT REFERENCES MPARating(id)
+  mpa_rating_id INT REFERENCES MPARating(id),
+  director_id   INT REFERENCES DIRECTORS(id)
 );
 
 CREATE TABLE IF NOT EXISTS FILM_GENRE
