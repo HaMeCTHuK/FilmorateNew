@@ -20,13 +20,17 @@ public class DirectorService extends AbstractService<Director> {
     private final DirectorStorage storage;
 
     @Autowired
-    public DirectorService(DirectorStorage directorStorage, DirectorStorage storage) {
-        this.storage = storage;
+    public DirectorService(DirectorStorage directorStorage) {
+        this.storage = directorStorage;
         this.abstractStorage = directorStorage;
     }
 
+    //Определяем какой метод сортировки получения списка фильмов будет использован
     public List<Film> getSortedDirectorList(Long directorId, String sortBy) {
         validateParameter(directorId);
+        if (sortBy == null) {
+            throw new IncorrectParameterException("Некорректное значение sortBy: null");
+        }
         log.info("Получаем список фильмов режиссера отсортированных по {}", sortBy);
         List<Film> films = new ArrayList<>();
 
