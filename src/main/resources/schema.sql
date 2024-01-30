@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS MPARating
 
 CREATE TABLE IF NOT EXISTS DIRECTORS
 (
-  id            INT NOT NULL PRIMARY KEY,
+  id            INT NOT NULL PRIMARY KEY auto_increment,
   director_name VARCHAR(255)
 );
 

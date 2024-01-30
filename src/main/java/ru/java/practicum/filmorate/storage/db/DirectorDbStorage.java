@@ -3,6 +3,7 @@ package ru.java.practicum.filmorate.storage.db;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Component;
 import ru.java.practicum.filmorate.exception.DataNotFoundException;
 import ru.java.practicum.filmorate.model.Director;
@@ -12,6 +13,7 @@ import ru.java.practicum.filmorate.storage.DirectorStorage;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -42,9 +44,17 @@ public class DirectorDbStorage implements DirectorStorage {
     // Метод создания режиссера в базе данных
     @Override
     public Director create(Director director) {
-        String sql = "INSERT INTO DIRECTORS (id, director_name) VALUES (?, ?)";
-        jdbcTemplate.update(sql, director.getId(), director.getName());
+        log.info("Отправляем данные для создания DIRECTOR в таблице");
+        SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate.getDataSource())
+                .withTableName("DIRECTORS")
+                .usingGeneratedKeyColumns("id");
+
+        Number id = simpleJdbcInsert.executeAndReturnKey(Map.of("director_name", director.getName()));
+
+        director.setId(id.intValue());
+        log.info("Добавлен режиссер: {} {}", director.getId(), director.getName());
         return director;
+
     }
 
     // Метод обновления режиссера в базе данных

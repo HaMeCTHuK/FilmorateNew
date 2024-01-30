@@ -10,7 +10,7 @@ import javax.validation.Valid;
 import java.util.List;
 
 @RestController
-@RequestMapping("/director")
+@RequestMapping("/directors")
 @Slf4j
 @RequiredArgsConstructor
 public class DirectorController {
