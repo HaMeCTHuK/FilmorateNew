@@ -24,8 +24,8 @@ public class FilmService extends AbstractService<Film> {
     private static final LocalDate LAST_RELEASE_DATE = LocalDate.of(1895, 12, 28);
 
     private final UserStorage userStorage;
-
     private final LikesStorage likesStorage;
+    private final FilmStorage filmStorage;
 
     @Autowired
     public FilmService(@Qualifier("filmDbStorage")  FilmStorage filmStorage,
@@ -34,6 +34,7 @@ public class FilmService extends AbstractService<Film> {
         this.abstractStorage = filmStorage;
         this.userStorage = userStorage;
         this.likesStorage = likesStorage;
+        this.filmStorage = filmStorage;
     }
 
     @Override
@@ -86,5 +87,17 @@ public class FilmService extends AbstractService<Film> {
     public List<Film> getPopularFilms(int count) {
         log.info("Получаем самые залайканые фильмы количеством: {}", count);
         return likesStorage.getPopularFilms(count);
+    }
+
+    public List<Film> getPopularWithYearForYear(int limit, long genreId, int year) {
+
+        if (limit <= 0 || year <= 0) {
+            throw new IncorrectParameterException("Некорректные параметры запроса");
+        }
+        /*if (getData(genreId) == null) {
+            throw new DataNotFoundException("Жанра с таким айди нет" + genreId);
+        }*/
+
+        return filmStorage.getPopularWithYearForYear(limit, genreId, year);
     }
 }

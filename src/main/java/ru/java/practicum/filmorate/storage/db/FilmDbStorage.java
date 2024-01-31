@@ -16,6 +16,7 @@ import ru.java.practicum.filmorate.storage.FilmStorage;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -187,6 +188,62 @@ public class FilmDbStorage implements FilmStorage {
         log.info("Удален объект с id=" + id);
     }
 
+    // Метод получения списка рекомендованных фильмов пользователя
+    @Override
+    public List<Film> getRecommendationsFilms(Long userId) {
+        // создаем список рекоммендованных фильмов
+        List<Film> recommendFilms = new ArrayList<>();
+        // запрос для получения пользователей по количеству пересечений
+        String sqlCross = "SELECT l2.user_id \"crossed_user_id\", COUNT(*) \"num_cross\" " +
+                "FROM LIKES l1 " +
+                "JOIN LIKES l2 on l1.film_id = l2.film_id and l1.user_id <> l2.user_id " +
+                "WHERE l1.user_id = ? " +
+                "GROUP BY \"crossed_user_id\" " +
+                "ORDER BY \"num_cross\" ";
+
+        // запрос для получнеия фильмов с пересекающимся пользователем
+        // но фильмов без общих лайков
+        String sqlListRecFilms = "SELECT l2.film_id " +
+                "FROM (SELECT film_id FROM LIKES WHERE user_id = ?) l1 " +
+                "RIGHT JOIN (SELECT film_id FROM LIKES WHERE user_id = ?) l2 " +
+                "ON l1.film_id = l2.film_id " +
+                "WHERE l1.film_id IS NULL ";
+
+        SqlRowSet resultSetCross = jdbcTemplate.queryForRowSet(sqlCross, userId);
+
+        // проходим по списку пользователей из запроса пересечений
+        while (resultSetCross.next()) {
+            Long crossedUserId = resultSetCross.getLong("crossed_user_id");
+
+            SqlRowSet resultSetRecFilms = jdbcTemplate.queryForRowSet(sqlListRecFilms, userId, crossedUserId);
+
+            List<Long> recommendFilmsId = new ArrayList<>();
+
+            // заполняем список НЕ пересекающихся id фильмов
+            while (resultSetRecFilms.next()) {
+                recommendFilmsId.add(resultSetRecFilms.getLong("film_id"));
+            }
+
+            // если НЕ пересекающихся фильмов нет
+            // переходим к следующему пользователю
+            if (recommendFilmsId.isEmpty()) {
+                continue;
+            }
+
+            // формируем список фильмов по id
+            recommendFilms = recommendFilmsId.stream()
+                    .map(id -> get(id))
+                    .collect(Collectors.toList());
+
+            return recommendFilms;
+        }
+
+        // если вовсе нет рекомендаций
+        // возвращаем 200 и пустой спикок
+        log.info("Рекомендованных фильмов для пользователя {} не найдено", userId);
+        return recommendFilms;
+    }
+
     // Вспомогательный метод для извлечения параметров для SQL-запросов с id
     protected Object[] getParametersWithId(Film film) {
         return new Object[]{
@@ -322,5 +379,11 @@ public class FilmDbStorage implements FilmStorage {
             // Если режиссеров нет, возвращаем пустой список
             return Collections.emptyList();
         }
+    }
+
+    //Метод для получения списка самых популярных фильмов указанного жанра за нужный год.
+    @Override
+    public List<Film> getPopularWithYearForYear(int limit, long genreId, int year) {
+        return null;
     }
 }

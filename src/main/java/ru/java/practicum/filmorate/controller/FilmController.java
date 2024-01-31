@@ -79,4 +79,15 @@ public class FilmController {
         log.info("Возвращает список фильмов режиссера отсортированных по количеству лайков или году выпуска.");
         return directorService.getSortedDirectorList(directorId, sortBy);
     }
+
+    //GET /films/popular?count={limit}&genreId={genreId}&year={year}
+    //Возвращает список самых популярных фильмов указанного жанра за нужный год.
+    @GetMapping("/popular")
+    public List<Film> getPopularWithYearForYear(@RequestParam int limit,
+                                                @RequestParam long genreId,
+                                                @RequestParam int year) {
+        log.info("Возвращаем список количеством = {}," +
+                " самых популярных фильмов указанного жанра с айди = {} за нужный год = {}.",limit, genreId, year);
+        return filmService.getPopularWithYearForYear(limit,genreId, year);
+    }
 }
