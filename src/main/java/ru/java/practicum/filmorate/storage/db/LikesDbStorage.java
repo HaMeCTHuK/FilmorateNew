@@ -75,28 +75,24 @@ public class LikesDbStorage implements LikesStorage {
 
         List<Film> films = jdbcTemplate.query(sql, LikesDbStorage::createFilmWithLikes, count);
 
+        for (Film film : films) {
+            List<Genre> genres = getGenresForFilm(film.getId());
+            film.setGenres(genres);
+        }
         return films;
     }
 
     private List<Genre> getGenresForFilm(Long filmId) {
-        String genresSql = "SELECT g.* " +
+        String genresSql = "SELECT g.id as genre_id, g.genre_name  " +
                 "FROM FILM_GENRE fg " +
                 "JOIN GENRES g ON fg.genre_id = g.id " +
                 "WHERE fg.film_id = ?;";
         try {
-            return jdbcTemplate.query(genresSql, LikesDbStorage::createGenre, filmId);
+            return jdbcTemplate.query(genresSql, FilmDbStorage::createGenre, filmId);
         } catch (DataNotFoundException e) {
             // Если жанров нет, возвращаем пустой список
             return Collections.emptyList();
         }
-    }
-
-    // Вспомогательный метод для создания объекта Genre из ResultSet
-    public static Genre createGenre(ResultSet rs, int rowNum) throws SQLException {
-        return Genre.builder()
-                .id(rs.getLong("genre_id"))
-                .name(rs.getString("genre_name"))
-                .build();
     }
 
     // Вспомогательный метод для создания объекта Mpa из ResultSet
@@ -112,10 +108,7 @@ public class LikesDbStorage implements LikesStorage {
 
         Mpa mpa = createMpa(rs, rowNum);
 
-        Long genreId = rs.getLong("genre_id");
-        Genre genre = genreId != 0 ? createGenre(rs, rowNum) : null;
-
-        Film film = Film.builder()
+        return Film.builder()
                 .id(rs.getLong("id"))
                 .name(rs.getString("name"))
                 .description(rs.getString("description"))
@@ -124,9 +117,6 @@ public class LikesDbStorage implements LikesStorage {
                 .rating(rs.getInt("rating"))
                 .likes(rs.getLong("like_count"))
                 .mpa(mpa)
-                .genres(genre != null ? Collections.singletonList(genre) : Collections.emptyList())
                 .build();
-
-        return film;
     }
 }
