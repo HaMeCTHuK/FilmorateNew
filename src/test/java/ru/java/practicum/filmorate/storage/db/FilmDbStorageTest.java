@@ -9,7 +9,6 @@ import ru.java.practicum.filmorate.exception.DataNotFoundException;
 import ru.java.practicum.filmorate.model.Film;
 import ru.java.practicum.filmorate.model.Mpa;
 import ru.java.practicum.filmorate.model.User;
-import ru.java.practicum.filmorate.storage.LikesStorage;
 
 import java.time.LocalDate;
 import java.util.List;
