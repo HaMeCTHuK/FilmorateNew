@@ -77,13 +77,12 @@ public class UserController {
     }
 
     //GET /users/{id}/recommendations - список рекомендованных фильмов по максимальному пересечению лайков
-
     @GetMapping("/{id}/recommendations")
     public List<Film> getRecommendations(@RequestBody @PathVariable Long id) {
         log.info("Получаем список рекомендованных фильмов для пользователя " + id);
         return userService.getRecommendations(id);
     }
-
+  
     // DELETE /users/{userId} — удаляем пользователя.
     @DeleteMapping("/{userId}")
     public void deleteUserById(@PathVariable Long userId) {
