@@ -9,6 +9,8 @@ import ru.java.practicum.filmorate.exception.DataNotFoundException;
 import ru.java.practicum.filmorate.model.Film;
 import ru.java.practicum.filmorate.model.Mpa;
 import ru.java.practicum.filmorate.model.User;
+import ru.java.practicum.filmorate.storage.DirectorStorage;
+import ru.java.practicum.filmorate.storage.LikesStorage;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -37,7 +39,9 @@ class FilmDbStorageTest {
         newFilm.getMpa().setId(1);
 
         // Записываем фильм в базу данных
-        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate);
+        LikesStorage likesStorage = new LikesDbStorage(jdbcTemplate);
+        DirectorDbStorage directorDbStorage = new DirectorDbStorage(jdbcTemplate);
+        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate, directorDbStorage, likesStorage);
         Film createdFilm = filmStorage.create(newFilm);
 
         // Проверяем, что фильм успешно создан
@@ -63,7 +67,9 @@ class FilmDbStorageTest {
         newFilm.getMpa().setId(2);
 
         // Записываем фильм в базу данных
-        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate);
+        LikesStorage likesStorage = new LikesDbStorage(jdbcTemplate);
+        DirectorDbStorage directorDbStorage = new DirectorDbStorage(jdbcTemplate);
+        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate, directorDbStorage, likesStorage);
         Film createdFilm = filmStorage.create(newFilm);
 
         // Меняем данные фильма
@@ -98,7 +104,9 @@ class FilmDbStorageTest {
         newFilm.getMpa().setId(3);
 
         // Записываем фильм в базу данных
-        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate);
+        LikesStorage likesStorage = new LikesDbStorage(jdbcTemplate);
+        DirectorDbStorage directorDbStorage = new DirectorDbStorage(jdbcTemplate);
+        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate, directorDbStorage, likesStorage);
         Film createdFilm = filmStorage.create(newFilm);
 
         // Получаем фильм по его ID
@@ -124,7 +132,9 @@ class FilmDbStorageTest {
         newFilm.getMpa().setId(5);
 
         // Записываем фильм в базу данных
-        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate);
+        LikesStorage likesStorage = new LikesDbStorage(jdbcTemplate);
+        DirectorDbStorage directorDbStorage = new DirectorDbStorage(jdbcTemplate);
+        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate, directorDbStorage, likesStorage);
         Film createdFilm = filmStorage.create(newFilm);
 
         // Удаляем фильм из базы данных
@@ -136,9 +146,10 @@ class FilmDbStorageTest {
 
     @Test
     void testGetRecommendationFilmsWithoutCross() {
-        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate);
-        UserDbStorage userStorage = new UserDbStorage(jdbcTemplate);
         LikesDbStorage likeStorage = new LikesDbStorage(jdbcTemplate);
+        DirectorDbStorage directorDbStorage = new DirectorDbStorage(jdbcTemplate);
+        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate, directorDbStorage, likeStorage);
+        UserDbStorage userStorage = new UserDbStorage(jdbcTemplate);
 
         // Подготавливаем данные для теста
         Film newFilm1 = new Film(
@@ -206,9 +217,10 @@ class FilmDbStorageTest {
 
     @Test
     void testGetRecommendationFilmsWithCross() {
-        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate);
-        UserDbStorage userStorage = new UserDbStorage(jdbcTemplate);
         LikesDbStorage likeStorage = new LikesDbStorage(jdbcTemplate);
+        DirectorDbStorage directorDbStorage = new DirectorDbStorage(jdbcTemplate);
+        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate, directorDbStorage, likeStorage);
+        UserDbStorage userStorage = new UserDbStorage(jdbcTemplate);
 
         // Подготавливаем данные для теста
         Film newFilm1 = new Film(
@@ -274,5 +286,53 @@ class FilmDbStorageTest {
 
         // Проверяем, что рекомендован фильм 2 от пользователя 2
         assertThat(recFilms.get(0).getName()).isEqualTo(newFilm2.getName());
+    }
+
+    @Test
+    void testGetCommonFilms() {
+        LikesDbStorage likeStorage = new LikesDbStorage(jdbcTemplate);
+        DirectorDbStorage directorDbStorage = new DirectorDbStorage(jdbcTemplate);
+        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate, directorDbStorage, likeStorage);
+        UserDbStorage userStorage = new UserDbStorage(jdbcTemplate);
+
+        // Подготавливаем данные для теста
+        Film newFilm1 = new Film(
+                "testFilm2",
+                "description2",
+                LocalDate.of(1999,2,24),
+                40,
+                1,
+                new Mpa(),
+                10L);
+        newFilm1.getMpa().setId(5);
+
+        User newUser1 = new User(
+                "test1@email.ru",
+                "test1",
+                "Ivan Petrov",
+                LocalDate.of(1990, 1, 1));
+
+        User newUser2 = new User(
+                "test2@email.ru",
+                "test2",
+                "Ivan Petrov",
+                LocalDate.of(1990, 1, 1));
+
+        // Записываем фильмы в БД
+        filmStorage.create(newFilm1);
+
+        // Записываем пользователей в БД
+        userStorage.create(newUser1);
+        userStorage.create(newUser2);
+
+        // Ставим лайки
+        likeStorage.addLike(newFilm1.getId(), newUser1.getId());
+        likeStorage.addLike(newFilm1.getId(), newUser2.getId());
+
+        // Получаем список общих фильмов
+        List<Film> commonFilms = filmStorage.getCommonFilms(newUser1.getId(), newUser2.getId());
+
+        // Проверяем, что общим является фильм 1
+        assertThat(commonFilms.get(0).getName()).isEqualTo("testFilm2");
     }
 }

@@ -13,6 +13,7 @@ import ru.java.practicum.filmorate.model.Film;
 import ru.java.practicum.filmorate.model.Genre;
 import ru.java.practicum.filmorate.model.Mpa;
 import ru.java.practicum.filmorate.storage.FilmStorage;
+import ru.java.practicum.filmorate.storage.LikesStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -26,6 +27,7 @@ public class FilmDbStorage implements FilmStorage {
 
     private final JdbcTemplate jdbcTemplate;
     private final DirectorDbStorage directorDbStorage;
+    private final LikesStorage likesStorage;
 
     // Метод для добавления нового фильма
     @Override
@@ -434,6 +436,27 @@ public class FilmDbStorage implements FilmStorage {
     private Mpa getMpaRatingForSearch(Long mpaId) {
         String mpaSql = "SELECT ID AS MPA_RATING_ID, RATING_NAME AS MPA_RATING_NAME FROM MPARATING WHERE ID =?";
         return jdbcTemplate.queryForObject(mpaSql, FilmDbStorage::createMpa, mpaId);
+    }
+
+
+    // Метод получения общих фильмов пользователей
+    public List<Film> getCommonFilms(Long userId, Long friendId) {
+        List<Long> usersFilms = likesStorage.getAllFilmLikes(userId);
+        List<Long> friendsFilms = likesStorage.getAllFilmLikes(friendId);
+
+        if (usersFilms.isEmpty() || friendsFilms.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Set<Long> commonFilmsId = new HashSet<>(usersFilms);
+        commonFilmsId.addAll(friendsFilms);
+
+        List<Film> films = new ArrayList<>();
+        for (Long filmId : new HashSet<>(commonFilmsId)) {
+            films.add(get(filmId));
+        }
+        return films.stream().sorted(Comparator.comparingLong(Film::getLikes).reversed())
+                .collect(Collectors.toList());
     }
 }
 
