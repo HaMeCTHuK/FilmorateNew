@@ -8,7 +8,6 @@ import ru.java.practicum.filmorate.service.DirectorService;
 import ru.java.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
-import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -85,5 +84,12 @@ public class FilmController {
         log.info("Вызван метод getFilmsByQuery - поиск фильмов по названию и/или режиссеру" +
                 " с query " + query + " с by " + by);
         return filmService.searchFilmsByQuery(query, by);
+
+    // DELETE /films/{filmId} — удаляем фильм.
+    @DeleteMapping("/{filmId}")
+    public void deleteUserById(@PathVariable Long filmId) {
+        log.info("Удаляем фильм по ID: " + filmId);
+        filmService.delete(filmId);
+
     }
 }

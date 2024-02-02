@@ -97,5 +97,10 @@ public class FilmService extends AbstractService<Film> {
         List<Film> films = filmStorage.searchFilmsByQuery(searchQuery, by);
         Collections.sort(films, (film1, film2) -> Long.compare(film2.getLikes(), film1.getLikes()));
         return films;
+
+    public void deleteFilmById(long filmId) {
+        abstractStorage.delete(filmId);
+        log.info("Удален фильм по ID: " + filmId);
+
     }
 }
