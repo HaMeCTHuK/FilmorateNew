@@ -1,5 +1,6 @@
 package ru.java.practicum.filmorate.service;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -15,6 +16,8 @@ import ru.java.practicum.filmorate.storage.UserStorage;
 
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -22,18 +25,18 @@ import java.util.List;
 public class FilmService extends AbstractService<Film> {
 
     private static final LocalDate LAST_RELEASE_DATE = LocalDate.of(1895, 12, 28);
-
     private final UserStorage userStorage;
-
+    private final FilmStorage filmStorage;
     private final LikesStorage likesStorage;
 
     @Autowired
-    public FilmService(@Qualifier("filmDbStorage")  FilmStorage filmStorage,
-                                                    UserStorage userStorage,
-                                                    LikesStorage likesStorage) {
+    public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage,
+                       UserStorage userStorage,
+                       LikesStorage likesStorage) {
         this.abstractStorage = filmStorage;
         this.userStorage = userStorage;
         this.likesStorage = likesStorage;
+        this.filmStorage = filmStorage;
     }
 
     @Override
@@ -86,5 +89,15 @@ public class FilmService extends AbstractService<Film> {
     public List<Film> getPopularFilms(int count) {
         log.info("Получаем самые залайканые фильмы количеством: {}", count);
         return likesStorage.getPopularFilms(count);
+    }
+
+    public List<Film> searchFilmsByQuery(String query, String by) {
+        if (query.isBlank()) {
+            return new ArrayList<>();
+        }
+        String searchQuery = "%" + query.toLowerCase() + "%";
+        List<Film> films = filmStorage.searchFilmsByQuery(searchQuery, by);
+        Collections.sort(films, (film1, film2) -> Long.compare(film2.getLikes(), film1.getLikes()));
+        return films;
     }
 }
