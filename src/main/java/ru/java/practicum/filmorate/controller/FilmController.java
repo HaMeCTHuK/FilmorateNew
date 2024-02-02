@@ -103,4 +103,25 @@ public class FilmController {
         // Обработка случая, когда указаны все параметры
         return filmService.getPopularWithYearForYear(limit, genreId, year);
     }
+
+    @GetMapping("/search") //после поиска пользователю выдается список фильмов по популярности
+    public List<Film> searchFilmsByQuery2(@RequestParam String query, @RequestParam String by) {
+        log.info("Вызван метод getFilmsByQuery - поиск фильмов по названию и/или режиссеру" +
+                " с query " + query + " с by " + by);
+        return filmService.searchFilmsByQuery(query, by);
+    }
+
+    // DELETE /films/{filmId} — удаляем фильм.
+    @DeleteMapping("/{filmId}")
+    public void deleteUserById(@PathVariable Long filmId) {
+        log.info("Удаляем фильм по ID: " + filmId);
+        filmService.delete(filmId);
+    }
+
+    //GET /films/common?userId={userId}&friendId={friendId} - вывод общих с другом фильмов с сортировкой по их популярности
+    @GetMapping("/common")
+    public List<Film> commonFilmsById(@RequestParam Long userId, @RequestParam Long friendId) {
+        log.info("Получаем общие фильмы пользователей " + userId + " и " + friendId);
+        return filmService.getCommonFilms(userId, friendId);
+    }
 }

@@ -155,7 +155,7 @@ public class DirectorDbStorage implements DirectorStorage {
     }
 
     // Метод для получения информации о DIRECTORS по идентификатору фильма
-    private List<Director> getDirectorsForFilm(Long filmId) {
+    protected List<Director> getDirectorsForFilm(Long filmId) {
         String directorsSql = "SELECT d.id as director_id, d.director_name " +
                 "FROM FILM_DIRECTOR fd " +
                 "JOIN DIRECTORS d ON fd.director_id = d.id " +

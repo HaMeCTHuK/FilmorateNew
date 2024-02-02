@@ -83,12 +83,13 @@ public class LikesDbStorage implements LikesStorage {
 
             film.setGenres(genres);
             film.setDirectors(directors);
-        }
+
         return films;
     }
 
     // Метод для получения информации о GENRE по идентификатору фильма
     private List<Genre> getGenresForFilm(Long filmId) {
+
         String genresSql = "SELECT g.id as genre_id, g.genre_name " +
                 "FROM FILM_GENRE fg " +
                 "JOIN GENRES g ON fg.genre_id = g.id " +
@@ -100,6 +101,7 @@ public class LikesDbStorage implements LikesStorage {
             return Collections.emptyList();
         }
     }
+
 
     // Метод для получения информации о DIRECTORS по идентификатору фильма
     private List<Director> getDirectorsForFilm(Long filmId) {
@@ -127,7 +129,7 @@ public class LikesDbStorage implements LikesStorage {
         log.info("Создаем объект Film после запроса к БД");
         Mpa mpa = createMpa(rs, rowNum);
 
-        Film film = Film.builder()
+        return Film.builder()
                 .id(rs.getLong("id"))
                 .name(rs.getString("name"))
                 .description(rs.getString("description"))
@@ -137,7 +139,5 @@ public class LikesDbStorage implements LikesStorage {
                 .likes(rs.getLong("like_count"))
                 .mpa(mpa)
                 .build();
-
-        return film;
     }
 }

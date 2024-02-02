@@ -15,6 +15,8 @@ import ru.java.practicum.filmorate.storage.LikesStorage;
 import ru.java.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -22,7 +24,6 @@ import java.util.List;
 public class FilmService extends AbstractService<Film> {
 
     private static final LocalDate LAST_RELEASE_DATE = LocalDate.of(1895, 12, 28);
-
     private final UserStorage userStorage;
     private final LikesStorage likesStorage;
     private final FilmStorage filmStorage;
@@ -33,11 +34,13 @@ public class FilmService extends AbstractService<Film> {
                                                     UserStorage userStorage,
                                                     LikesStorage likesStorage,
                                                     GenreStorage genreStorage) {
+
         this.abstractStorage = filmStorage;
         this.userStorage = userStorage;
         this.likesStorage = likesStorage;
         this.filmStorage = filmStorage;
         this.genreStorage = genreStorage;
+
     }
 
     @Override
@@ -97,7 +100,6 @@ public class FilmService extends AbstractService<Film> {
         if ((limit <= 0) || (year != null && year <= 0)) {
             throw new IncorrectParameterException("Некорректные параметры запроса");
         }
-
         if (genreId != null && genreStorage.get(genreId) == null) {
             throw new DataNotFoundException("Жанра с таким айди нет" + genreId);
         }
@@ -112,7 +114,6 @@ public class FilmService extends AbstractService<Film> {
         if (limit <= 0) {
             throw new IncorrectParameterException("Некорректные параметры запроса");
         }
-
         if (genreId != null && genreStorage.get(genreId) == null) {
             throw new DataNotFoundException("Жанра с таким айди нет" + genreId);
         }
@@ -131,5 +132,25 @@ public class FilmService extends AbstractService<Film> {
         log.info("Получение списка" +
                 " самых популярных фильмов за нужный год = {}.", year);
         return filmStorage.getPopularWithYear(limit, year);
+    }
+
+    public List<Film> searchFilmsByQuery(String query, String by) {
+        if (query.isBlank()) {
+            return new ArrayList<>();
+        }
+        String searchQuery = "%" + query.toLowerCase() + "%";
+        List<Film> films = filmStorage.searchFilmsByQuery(searchQuery, by);
+        Collections.sort(films, (film1, film2) -> Long.compare(film2.getLikes(), film1.getLikes()));
+        return films;
+    }
+
+    public void deleteFilmById(long filmId) {
+        abstractStorage.delete(filmId);
+        log.info("Удален фильм по ID: " + filmId);
+    }
+
+    public List<Film> getCommonFilms(Long userId, Long friendId) {
+        log.info("Получаем общие фильмы пользователей" + userId + " и " + friendId);
+        return filmStorage.getCommonFilms(userId, friendId);
     }
 }

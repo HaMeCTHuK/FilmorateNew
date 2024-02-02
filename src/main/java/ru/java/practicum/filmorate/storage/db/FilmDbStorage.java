@@ -3,6 +3,7 @@ package ru.java.practicum.filmorate.storage.db;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
@@ -12,6 +13,7 @@ import ru.java.practicum.filmorate.model.Film;
 import ru.java.practicum.filmorate.model.Genre;
 import ru.java.practicum.filmorate.model.Mpa;
 import ru.java.practicum.filmorate.storage.FilmStorage;
+import ru.java.practicum.filmorate.storage.LikesStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -24,14 +26,16 @@ import java.util.stream.Collectors;
 public class FilmDbStorage implements FilmStorage {
 
     private final JdbcTemplate jdbcTemplate;
+    private final DirectorDbStorage directorDbStorage;
+    private final LikesStorage likesStorage;
 
     // Метод для добавления нового фильма
     @Override
     public Film create(Film film) {
         log.info("Отправляем данные для создания FILM в таблице");
         SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate.getDataSource())
-            .withTableName("FILMS")
-            .usingGeneratedKeyColumns("id");
+                .withTableName("FILMS")
+                .usingGeneratedKeyColumns("id");
 
         Number filmId = simpleJdbcInsert.executeAndReturnKey(getParams(film)); // Получаем id из таблицы при создании
         film.setId(filmId.longValue());
@@ -39,7 +43,7 @@ public class FilmDbStorage implements FilmStorage {
         // Добавляем информацию о жанрах в таблицу FILM_GENRE
         addGenresForFilm(filmId.longValue(), film.getGenres());
         // Добавляем информацию о жанрах в таблицу FILM_DIRECTORS
-        addDirectorForFilm(filmId.longValue(),film.getDirectors());
+        addDirectorForFilm(filmId.longValue(), film.getDirectors());
 
         // Заполняем жанры, режиссеров
         film.setGenres(getGenresForFilm(filmId.longValue()));
@@ -50,7 +54,7 @@ public class FilmDbStorage implements FilmStorage {
         film.getMpa().setName(mpa.getName());  // Устанавливаем имя рейтинга MPA в объекте Film
         log.info("Добавлен объект: " + film);
         return film;
-}
+    }
 
     // Метод для обновления существующего фильма
     @Override
@@ -165,10 +169,10 @@ public class FilmDbStorage implements FilmStorage {
                                     .name(resultSet.getString("genre_name"))
                                     .build()))
                     .directors(Collections.singletonList(
-                                    Director.builder()
-                                            .id(resultSet.getLong("id"))
-                                            .name(resultSet.getString("director_name"))
-                                            .build()))
+                            Director.builder()
+                                    .id(resultSet.getLong("id"))
+                                    .name(resultSet.getString("director_name"))
+                                    .build()))
                     .build();
 
             film.setGenres(genres);
@@ -382,6 +386,7 @@ public class FilmDbStorage implements FilmStorage {
         }
     }
 
+
     // Метод для получения лайков по идентификатору фильма
     private int getLikesForFilm(Long filmId) {
         String sql = "SELECT COUNT(*) FROM LIKES WHERE film_id = ?";
@@ -460,4 +465,77 @@ public class FilmDbStorage implements FilmStorage {
         return films;
     }
 
+    // Метод для поиска фильма по запросу
+    @Override
+    public List<Film> searchFilmsByQuery(String query, String by) {
+        String sql = "SELECT f.* FROM FILMS f LEFT JOIN FILM_DIRECTOR fd ON f.ID = fd.FILM_ID " +
+                "LEFT JOIN DIRECTORS d ON fd.DIRECTOR_ID = d.ID ";
+
+        if (by.equals("title")) {
+            return jdbcTemplate.query(sql + "WHERE LOWER(f.NAME) LIKE ?", new FilmMapper(), query);
+        }
+        if (by.equals("director")) {
+            return jdbcTemplate.query(sql + "WHERE LOWER(d.DIRECTOR_NAME) LIKE ?", new FilmMapper(), query);
+        }
+        if (by.equals("title,director") || by.equals("director,title")) {
+            return jdbcTemplate.query(sql + "WHERE LOWER(f.NAME) LIKE ? OR LOWER(d.DIRECTOR_NAME) LIKE ?",
+                    new FilmMapper(), query, query);
+        }
+        return new ArrayList<>();
+    }
+
+    // Метод подсчета количества лайков для определенного фильма
+    public Long getFilmLikes(long filmId) {
+        return jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) " +
+                        "FROM LIKES " +
+                        "WHERE FILM_ID=?", Long.class, filmId); //Дублирующий метод с  доработать/getLikesForFilm
+    }
+
+    //Вспомогательный класс для извлечения данных
+    private class FilmMapper implements RowMapper<Film> {
+        @Override
+        public Film mapRow(ResultSet rs, int rowNum) throws SQLException {
+
+            Film film = new Film();
+            film.setId(rs.getLong("id"));
+            film.setName(rs.getString("name"));
+            film.setDescription(rs.getString("description"));
+            film.setReleaseDate(rs.getDate("release_date").toLocalDate());
+            film.setDuration(rs.getInt("duration"));
+            film.setRating(rs.getInt("rating"));
+            film.setMpa(getMpaRatingForSearch(rs.getLong("MPA_RATING_ID")));
+            film.setGenres(getGenresForFilm(rs.getLong("id")));
+            film.setDirectors(directorDbStorage.getDirectorsForFilm(rs.getLong("id")));
+            film.setLikes(getFilmLikes(rs.getLong("id")));
+            return film;
+        }
+    }
+
+    // Метод для получения информации для поиска о MpaRating по идентификатору
+    private Mpa getMpaRatingForSearch(Long mpaId) {
+        String mpaSql = "SELECT ID AS MPA_RATING_ID, RATING_NAME AS MPA_RATING_NAME FROM MPARATING WHERE ID =?";
+        return jdbcTemplate.queryForObject(mpaSql, FilmDbStorage::createMpa, mpaId);    //Дублирующий метод, найти и разобраться
+    }
+
+    // Метод получения общих фильмов пользователей
+    public List<Film> getCommonFilms(Long userId, Long friendId) {
+        List<Long> usersFilms = likesStorage.getAllFilmLikes(userId);
+        List<Long> friendsFilms = likesStorage.getAllFilmLikes(friendId);
+
+        if (usersFilms.isEmpty() || friendsFilms.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Set<Long> commonFilmsId = new HashSet<>(usersFilms);
+        commonFilmsId.addAll(friendsFilms);
+
+        List<Film> films = new ArrayList<>();
+        for (Long filmId : new HashSet<>(commonFilmsId)) {
+            films.add(get(filmId));
+        }
+        return films.stream().sorted(Comparator.comparingLong(Film::getLikes).reversed())
+                .collect(Collectors.toList());
+    }
 }
+
