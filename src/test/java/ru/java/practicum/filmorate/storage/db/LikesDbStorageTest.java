@@ -24,6 +24,7 @@ class LikesDbStorageTest {
     @Test
     void addLike() {
         LikesDbStorage likesDbStorage = new LikesDbStorage(jdbcTemplate);
+        DirectorDbStorage directorDbStorage = new DirectorDbStorage(jdbcTemplate);
 
         Film newFilm = new Film(
                 "testFilm2",
@@ -36,7 +37,7 @@ class LikesDbStorageTest {
 
         newFilm.getMpa().setId(2);
 
-        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate);
+        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate, directorDbStorage, likesDbStorage);
         Film createdFilm = filmStorage.create(newFilm);
 
         User newUser = new User(
@@ -62,7 +63,8 @@ class LikesDbStorageTest {
     @Test
     void deleteLike() {
         LikesDbStorage likesDbStorage = new LikesDbStorage(jdbcTemplate);
-        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate);
+        DirectorDbStorage directorDbStorage = new DirectorDbStorage(jdbcTemplate);
+        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate, directorDbStorage, likesDbStorage);
         UserDbStorage userStorage = new UserDbStorage(jdbcTemplate);
 
         Film newFilm = new Film(
@@ -102,7 +104,8 @@ class LikesDbStorageTest {
     @Test
     void getLikesCountForFilm() {
         LikesDbStorage likesDbStorage = new LikesDbStorage(jdbcTemplate);
-        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate);
+        DirectorDbStorage directorDbStorage = new DirectorDbStorage(jdbcTemplate);
+        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate, directorDbStorage, likesDbStorage);
         UserDbStorage userStorage = new UserDbStorage(jdbcTemplate);
 
         Film newFilm = new Film(
@@ -150,7 +153,8 @@ class LikesDbStorageTest {
     @Test
     void getAllFilmLikes() {
         LikesDbStorage likesDbStorage = new LikesDbStorage(jdbcTemplate);
-        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate);
+        DirectorDbStorage directorDbStorage = new DirectorDbStorage(jdbcTemplate);
+        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate, directorDbStorage, likesDbStorage);
         UserDbStorage userStorage = new UserDbStorage(jdbcTemplate);
 
         Film newFilm = new Film(
@@ -203,7 +207,8 @@ class LikesDbStorageTest {
     @Test
     void getPopularFilms() {
         LikesDbStorage likesDbStorage = new LikesDbStorage(jdbcTemplate);
-        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate);
+        DirectorDbStorage directorDbStorage = new DirectorDbStorage(jdbcTemplate);
+        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate, directorDbStorage, likesDbStorage);
         UserDbStorage userStorage = new UserDbStorage(jdbcTemplate);
 
         Film newFilm = new Film(

@@ -84,6 +84,7 @@ public class FilmController {
         log.info("Вызван метод getFilmsByQuery - поиск фильмов по названию и/или режиссеру" +
                 " с query " + query + " с by " + by);
         return filmService.searchFilmsByQuery(query, by);
+    }
 
     // DELETE /films/{filmId} — удаляем фильм.
     @DeleteMapping("/{filmId}")
@@ -91,5 +92,12 @@ public class FilmController {
         log.info("Удаляем фильм по ID: " + filmId);
         filmService.delete(filmId);
 
+    }
+
+    //GET /films/common?userId={userId}&friendId={friendId} - вывод общих с другом фильмов с сортировкой по их популярности
+    @GetMapping("/common")
+    public List<Film> commonFilmsById(@RequestParam Long userId, @RequestParam Long friendId) {
+        log.info("Получаем общие фильмы пользователей " + userId + " и " + friendId);
+        return filmService.getCommonFilms(userId, friendId);
     }
 }
