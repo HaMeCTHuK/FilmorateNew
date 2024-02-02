@@ -41,9 +41,10 @@ public class FilmDbStorage implements FilmStorage {
         // Добавляем информацию о жанрах в таблицу FILM_DIRECTORS
         addDirectorForFilm(filmId.longValue(),film.getDirectors());
 
-        // Заполняем жанры и режиссеров
+        // Заполняем жанры, режиссеров
         film.setGenres(getGenresForFilm(filmId.longValue()));
         film.setDirectors(getDirectorsForFilm(filmId.longValue()));
+
 
         Mpa mpa = getMpaRating(film.getMpa());  // Получаем MPA из базы данных
         film.getMpa().setName(mpa.getName());  // Устанавливаем имя рейтинга MPA в объекте Film
@@ -381,9 +382,82 @@ public class FilmDbStorage implements FilmStorage {
         }
     }
 
+    // Метод для получения лайков по идентификатору фильма
+    private int getLikesForFilm(Long filmId) {
+        String sql = "SELECT COUNT(*) FROM LIKES WHERE film_id = ?";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, filmId);
+        if (count == null) {
+            return 0;
+        }
+        return count;
+    }
+
     //Метод для получения списка самых популярных фильмов указанного жанра за нужный год.
     @Override
     public List<Film> getPopularWithYearForYear(int limit, long genreId, int year) {
-        return null;
+        String popWithYearFilmsSql = "SELECT f.*, m.rating_name AS mpa_rating_name " +
+                "FROM FILMS f " +
+                "LEFT JOIN MPARating m ON f.mpa_rating_id = m.id " +
+                "WHERE EXTRACT(YEAR FROM f.release_date) = ? " +
+                "LIMIT ?";
+
+        List<Film> films = jdbcTemplate.query(popWithYearFilmsSql, FilmDbStorage::createFilm, year, limit);
+
+        // Добавляем жанры и режиссеров к каждому фильму
+        for (Film film : films) {
+            List<Genre> genres = getGenresForFilm(film.getId());
+            List<Director> directors = getDirectorsForFilm(film.getId());
+
+            film.setGenres(genres);
+            film.setDirectors(directors);
+
+        }
+        return films;
     }
+
+    // Метод для получения списка самых популярных фильмов указанного жанра
+    @Override
+    public List<Film> getPopularWithGenre(int limit, Long genreId) {
+        String popWithGenreFilmsSql = "SELECT f.*, m.rating_name AS mpa_rating_name " +
+                "FROM FILMS f " +
+                "LEFT JOIN MPARating m ON f.mpa_rating_id = m.id " +
+                "LEFT JOIN FILM_GENRE fg ON f.id = fg.film_id " +
+                "WHERE fg.genre_id = ? " +
+                "LIMIT ?";
+
+        List<Film> films = jdbcTemplate.query(popWithGenreFilmsSql, FilmDbStorage::createFilm, genreId, limit);
+
+        // Добавляем жанры и режиссеров к каждому фильму
+        for (Film film : films) {
+            List<Genre> genres = getGenresForFilm(film.getId());
+            List<Director> directors = getDirectorsForFilm(film.getId());
+
+            film.setDirectors(directors);
+            film.setGenres(genres);
+        }
+        return films;
+    }
+
+    // Метод для получения списка самых популярных фильмов за нужный год.
+    @Override
+    public List<Film> getPopularWithYear(int limit, Integer year) {
+        String popWithYearFilmsSql = "SELECT f.*, m.rating_name AS mpa_rating_name " +
+                "FROM FILMS f " +
+                "LEFT JOIN MPARating m ON f.mpa_rating_id = m.id " +
+                "WHERE EXTRACT(YEAR FROM f.release_date) = ?" +
+                "LIMIT ?";
+
+        List<Film> films = jdbcTemplate.query(popWithYearFilmsSql, FilmDbStorage::createFilm, year, limit);
+
+        // Добавляем жанры и режиссеров к каждому фильму
+        for (Film film : films) {
+            List<Genre> genres = getGenresForFilm(film.getId());
+            List<Director> directors = getDirectorsForFilm(film.getId());
+
+            film.setGenres(genres);
+            film.setDirectors(directors);
+        }
+        return films;
+    }
+
 }

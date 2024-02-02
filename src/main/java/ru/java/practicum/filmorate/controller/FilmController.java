@@ -8,7 +8,6 @@ import ru.java.practicum.filmorate.service.DirectorService;
 import ru.java.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
-import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -46,7 +45,6 @@ public class FilmController {
     }
 
     //PUT /films/{id}/like/{userId} — пользователь ставит лайк фильму.
-
     @PutMapping("/{id}/like/{userId}")
     public void likeFilm(@RequestBody @PathVariable Long id, @PathVariable Long userId) {
         log.info("Пользователь с id: {} пытается поставить лайк фильму с айди {}", id, userId);
@@ -54,25 +52,14 @@ public class FilmController {
     }
 
     //DELETE /films/{id}/like/{userId} — пользователь удаляет лайк.
-
     @DeleteMapping("/{id}/like/{userId}")
     public void removeFilmLike(@PathVariable Long id, @PathVariable Long userId) {
         log.info("Пользователь с id: {} пытается удалить лайк у фильма с айди {}", id, userId);
         filmService.deleteLike(id, userId);
     }
 
-    //GET /films/popular?count={count} — возвращает список из первых count фильмов по количеству лайков.
-    // Если значение параметра count не задано, верните первые 10.
-
-    @GetMapping("/popular")
-    public List<Film> getPopularFilms(@RequestParam(defaultValue = "10") int count) {
-        log.info("Пытаемся получить самые залайканые фильмы количеством: {} шт.", count);
-        return filmService.getPopularFilms(count);
-    }
-
     //GET /films/director/{directorId}?sortBy=[year,likes]
     //Возвращает список фильмов режиссера отсортированных по количеству лайков или году выпуска.
-
     @GetMapping("/director/{directorId}")
     public List<Film> getSortedDirectorList(@PathVariable Long directorId,
                                             @RequestParam(required = false) String sortBy) {
@@ -82,12 +69,38 @@ public class FilmController {
 
     //GET /films/popular?count={limit}&genreId={genreId}&year={year}
     //Возвращает список самых популярных фильмов указанного жанра за нужный год.
+    //GET /films/popular?count={count} — возвращает список из первых count фильмов по количеству лайков.
+    // Если значение параметра count не задано, верните первые 10.
+    //Объединил старый метод и необходимую новую реализацию методов
     @GetMapping("/popular")
-    public List<Film> getPopularWithYearForYear(@RequestParam int limit,
-                                                @RequestParam long genreId,
-                                                @RequestParam int year) {
-        log.info("Возвращаем список количеством = {}," +
-                " самых популярных фильмов указанного жанра с айди = {} за нужный год = {}.",limit, genreId, year);
-        return filmService.getPopularWithYearForYear(limit,genreId, year);
+    public List<Film> getPopularWithYearForYear(@RequestParam(required = false, defaultValue = "10") int count,
+                                                @RequestParam(required = false) Long genreId,
+                                                @RequestParam(required = false) Integer year,
+                                                @RequestParam(required = false, defaultValue = "10") int limit) {
+
+        if (genreId == null && year == null) {
+            // Обработка запроса /films/popular?count={count}
+            log.info("Получили запрос на получение списка самых залайканых фильмов количеством: {} шт.", count);
+            return filmService.getPopularFilms(count);
+        }
+
+        if (year == null) {
+            // Обработка случая, когда параметр year не указан в запросе
+            log.info("Получили запрос на получение списка" +
+                    " самых популярных фильмов указанного жанра с айди = {}", genreId);
+            return filmService.getPopularWithGenre(limit, genreId);
+        }
+
+        if (genreId == null) {
+            // Обработка случая, когда параметр genreId не указан в запросе
+            log.info("Получили запрос на получение списка" +
+                    " самых популярных фильмов за нужный год = {}.", year);
+            return filmService.getPopularWithYear(limit, year);
+        }
+
+        log.info("Получили запрос на получение списка размером = {}," +
+                " самых популярных фильмов указанного жанра с айди = {} за нужный год = {}.", limit, genreId, year);
+        // Обработка случая, когда указаны все параметры
+        return filmService.getPopularWithYearForYear(limit, genreId, year);
     }
 }

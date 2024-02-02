@@ -13,4 +13,7 @@ public interface FilmStorage extends AbstractStorage<Film> {
 
     List<Film> getRecommendationsFilms(Long id);
 
+    List<Film> getPopularWithGenre(int limit, Long genreId);
+
+    List<Film> getPopularWithYear(int limit, Integer year);
 }

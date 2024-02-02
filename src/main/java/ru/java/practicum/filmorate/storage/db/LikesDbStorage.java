@@ -87,14 +87,14 @@ public class LikesDbStorage implements LikesStorage {
         return films;
     }
 
-    // Метод для получения информации о GENRES по идентификатору фильма
+    // Метод для получения информации о GENRE по идентификатору фильма
     private List<Genre> getGenresForFilm(Long filmId) {
-        String genresSql = "SELECT g.* " +
+        String genresSql = "SELECT g.id as genre_id, g.genre_name " +
                 "FROM FILM_GENRE fg " +
                 "JOIN GENRES g ON fg.genre_id = g.id " +
-                "WHERE fg.film_id = ?;";
+                "WHERE fg.film_id = ?";
         try {
-            return jdbcTemplate.query(genresSql, LikesDbStorage::createGenre, filmId);
+            return jdbcTemplate.query(genresSql, FilmDbStorage::createGenre, filmId);
         } catch (DataNotFoundException e) {
             // Если жанров нет, возвращаем пустой список
             return Collections.emptyList();
@@ -113,14 +113,6 @@ public class LikesDbStorage implements LikesStorage {
             // Если режиссеров нет, возвращаем пустой список
             return Collections.emptyList();
         }
-    }
-
-    // Вспомогательный метод для создания объекта Genre из ResultSet
-    public static Genre createGenre(ResultSet rs, int rowNum) throws SQLException {
-        return Genre.builder()
-                .id(rs.getLong("genre_id"))
-                .name(rs.getString("genre_name"))
-                .build();
     }
 
     // Вспомогательный метод для создания объекта Mpa из ResultSet
