@@ -89,4 +89,9 @@ public class UserService extends AbstractService<User> {
         log.info("Получаем список общих друзей пользоватеей ID: " + userId + " и " + friendId);
         return friendsStorage.getCommonFriends(userId, friendId);
     }
+
+    public void deleteUserById(Long userId) {
+        abstractStorage.delete(userId);
+        log.info("Удален пользователь по ID: " + userId);
+    }
 }

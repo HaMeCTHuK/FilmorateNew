@@ -8,7 +8,6 @@ import ru.java.practicum.filmorate.service.DirectorService;
 import ru.java.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
-import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -78,5 +77,12 @@ public class FilmController {
                                             @RequestParam(required = false) String sortBy) {
         log.info("Возвращает список фильмов режиссера отсортированных по количеству лайков или году выпуска.");
         return directorService.getSortedDirectorList(directorId, sortBy);
+    }
+
+    // DELETE /films/{filmId} — удаляем фильм.
+    @DeleteMapping("/{filmId}")
+    public void deleteUserById(@PathVariable Long filmId) {
+        log.info("Удаляем фильм по ID: " + filmId);
+        filmService.delete(filmId);
     }
 }

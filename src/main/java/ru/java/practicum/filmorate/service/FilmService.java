@@ -87,4 +87,9 @@ public class FilmService extends AbstractService<Film> {
         log.info("Получаем самые залайканые фильмы количеством: {}", count);
         return likesStorage.getPopularFilms(count);
     }
+
+    public void deleteFilmById(long filmId) {
+        abstractStorage.delete(filmId);
+        log.info("Удален фильм по ID: " + filmId);
+    }
 }
