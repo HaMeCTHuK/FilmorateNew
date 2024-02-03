@@ -29,12 +29,13 @@ class DirectorDbStorageTest {
     @Test
     void getSortedDirectorListByYear() {
 
-        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate);
-        DirectorStorage directorStorage = new DirectorDbStorage(jdbcTemplate);
+        LikesDbStorage likeStorage = new LikesDbStorage(jdbcTemplate);
+        DirectorDbStorage directorDbStorage = new DirectorDbStorage(jdbcTemplate);
+        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate, directorDbStorage, likeStorage);
 
         //Создаем режиссера и добавляем в бд
         Director director = Director.builder().id(1).name("Boss").build();
-        Director createdDirector = directorStorage.create(director);
+        Director createdDirector = directorDbStorage.create(director);
 
         // Подготавливаем данные для теста
         Film newFilm = new Film(
@@ -63,7 +64,7 @@ class DirectorDbStorageTest {
         newFilm2.getDirectors().add(createdDirector);
         Film createdFilm2 = filmStorage.create(newFilm2);
 
-        List<Film> sortedListByYear = directorStorage.getSortedDirectorListByYear(createdDirector.getId());
+        List<Film> sortedListByYear = directorDbStorage.getSortedDirectorListByYear(createdDirector.getId());
         //Проверяем что список не пуст
         assertThat(sortedListByYear).isNotNull();
         //Проверяем сортировку по году
@@ -73,13 +74,13 @@ class DirectorDbStorageTest {
     @Test
     void getSortedDirectorListByLikes() {
 
-        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate);
-        DirectorStorage directorStorage = new DirectorDbStorage(jdbcTemplate);
-        LikesDbStorage likesDbStorage = new LikesDbStorage(jdbcTemplate);
+        LikesDbStorage likeStorage = new LikesDbStorage(jdbcTemplate);
+        DirectorDbStorage directorDbStorage = new DirectorDbStorage(jdbcTemplate);
+        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate, directorDbStorage, likeStorage);
 
         //Создаем режиссера и добавляем в бд
         Director director = Director.builder().id(1).name("Boss").build();
-        Director createdDirector = directorStorage.create(director);
+        Director createdDirector = directorDbStorage.create(director);
 
         // Подготавливаем данные для теста
         Film newFilm = new Film(
@@ -117,9 +118,9 @@ class DirectorDbStorageTest {
         User createdUser = userStorage.create(newUser);
 
         //добавляем лайки
-        likesDbStorage.addLike(createdFilm.getId(),createdUser.getId());
+        likeStorage.addLike(createdFilm.getId(),createdUser.getId());
 
-        List<Film> sortedListByLikes = directorStorage.getSortedDirectorListByLikes(createdDirector.getId());
+        List<Film> sortedListByLikes = directorDbStorage.getSortedDirectorListByLikes(createdDirector.getId());
         //Проверяем что список не пуст
         assertThat(sortedListByLikes).isNotNull();
         //Проверяем сортировку по году

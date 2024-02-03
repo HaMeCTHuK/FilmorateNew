@@ -10,7 +10,6 @@ import ru.java.practicum.filmorate.model.Film;
 import ru.java.practicum.filmorate.model.Genre;
 import ru.java.practicum.filmorate.model.Mpa;
 import ru.java.practicum.filmorate.model.User;
-import ru.java.practicum.filmorate.storage.DirectorStorage;
 import ru.java.practicum.filmorate.storage.LikesStorage;
 
 import java.time.LocalDate;
@@ -340,7 +339,9 @@ class FilmDbStorageTest {
  @Test
     public void isGetPopularWithYearForYearOk() {
 
-        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate);
+        LikesDbStorage likeStorage = new LikesDbStorage(jdbcTemplate);
+        DirectorDbStorage directorDbStorage = new DirectorDbStorage(jdbcTemplate);
+        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate, directorDbStorage, likeStorage);
         GenreDbStorage genreStorage = new GenreDbStorage(jdbcTemplate);
 
         // Подготавливаем данные для теста
@@ -395,7 +396,9 @@ class FilmDbStorageTest {
     @Test
     public void isGetPopularWithGenreOk() {
 
-        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate);
+        LikesDbStorage likeStorage = new LikesDbStorage(jdbcTemplate);
+        DirectorDbStorage directorDbStorage = new DirectorDbStorage(jdbcTemplate);
+        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate, directorDbStorage, likeStorage);
         GenreDbStorage genreStorage = new GenreDbStorage(jdbcTemplate);
 
         // Подготавливаем данные для теста
@@ -452,7 +455,9 @@ class FilmDbStorageTest {
     @Test
     public void isGetPopularWithYearOk() {
 
-        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate);
+        LikesDbStorage likeStorage = new LikesDbStorage(jdbcTemplate);
+        DirectorDbStorage directorDbStorage = new DirectorDbStorage(jdbcTemplate);
+        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate, directorDbStorage, likeStorage);
         GenreDbStorage genreStorage = new GenreDbStorage(jdbcTemplate);
 
         // Подготавливаем данные для теста
