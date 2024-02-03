@@ -340,7 +340,9 @@ class FilmDbStorageTest {
  @Test
     public void isGetPopularWithYearForYearOk() {
 
-        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate);
+     LikesDbStorage likeStorage = new LikesDbStorage(jdbcTemplate);
+     DirectorDbStorage directorDbStorage = new DirectorDbStorage(jdbcTemplate);
+     FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate, directorDbStorage, likeStorage);
         GenreDbStorage genreStorage = new GenreDbStorage(jdbcTemplate);
 
         // Подготавливаем данные для теста
@@ -395,7 +397,9 @@ class FilmDbStorageTest {
     @Test
     public void isGetPopularWithGenreOk() {
 
-        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate);
+        LikesDbStorage likeStorage = new LikesDbStorage(jdbcTemplate);
+        DirectorDbStorage directorDbStorage = new DirectorDbStorage(jdbcTemplate);
+        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate, directorDbStorage, likeStorage);
         GenreDbStorage genreStorage = new GenreDbStorage(jdbcTemplate);
 
         // Подготавливаем данные для теста
@@ -452,7 +456,9 @@ class FilmDbStorageTest {
     @Test
     public void isGetPopularWithYearOk() {
 
-        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate);
+        LikesDbStorage likeStorage = new LikesDbStorage(jdbcTemplate);
+        DirectorDbStorage directorDbStorage = new DirectorDbStorage(jdbcTemplate);
+        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate, directorDbStorage, likeStorage);
         GenreDbStorage genreStorage = new GenreDbStorage(jdbcTemplate);
 
         // Подготавливаем данные для теста
