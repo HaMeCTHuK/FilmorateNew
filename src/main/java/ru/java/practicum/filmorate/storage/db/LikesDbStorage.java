@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import ru.java.practicum.filmorate.exception.DataNotFoundException;
+import ru.java.practicum.filmorate.model.Director;
 import ru.java.practicum.filmorate.model.Film;
 import ru.java.practicum.filmorate.model.Genre;
 import ru.java.practicum.filmorate.model.Mpa;
@@ -75,22 +76,43 @@ public class LikesDbStorage implements LikesStorage {
 
         List<Film> films = jdbcTemplate.query(sql, LikesDbStorage::createFilmWithLikes, count);
 
+        // Добавляем жанры и режиссеров к каждому фильму
         for (Film film : films) {
             List<Genre> genres = getGenresForFilm(film.getId());
+            List<Director> directors = getDirectorsForFilm(film.getId());
+
             film.setGenres(genres);
-        }
+            film.setDirectors(directors);
+
         return films;
     }
 
+    // Метод для получения информации о GENRE по идентификатору фильма
     private List<Genre> getGenresForFilm(Long filmId) {
-        String genresSql = "SELECT g.id as genre_id, g.genre_name  " +
+
+        String genresSql = "SELECT g.id as genre_id, g.genre_name " +
                 "FROM FILM_GENRE fg " +
                 "JOIN GENRES g ON fg.genre_id = g.id " +
-                "WHERE fg.film_id = ?;";
+                "WHERE fg.film_id = ?";
         try {
             return jdbcTemplate.query(genresSql, FilmDbStorage::createGenre, filmId);
         } catch (DataNotFoundException e) {
             // Если жанров нет, возвращаем пустой список
+            return Collections.emptyList();
+        }
+    }
+
+
+    // Метод для получения информации о DIRECTORS по идентификатору фильма
+    private List<Director> getDirectorsForFilm(Long filmId) {
+        String directorsSql = "SELECT d.id as director_id, d.director_name " +
+                "FROM FILM_DIRECTOR fd " +
+                "JOIN DIRECTORS d ON fd.director_id = d.id " +
+                "WHERE fd.film_id = ?";
+        try {
+            return jdbcTemplate.query(directorsSql, DirectorDbStorage::createDirector, filmId);
+        } catch (DataNotFoundException e) {
+            // Если режиссеров нет, возвращаем пустой список
             return Collections.emptyList();
         }
     }
@@ -105,7 +127,6 @@ public class LikesDbStorage implements LikesStorage {
 
     public static Film createFilmWithLikes(ResultSet rs, int rowNum) throws SQLException {
         log.info("Создаем объект Film после запроса к БД");
-
         Mpa mpa = createMpa(rs, rowNum);
 
         return Film.builder()
