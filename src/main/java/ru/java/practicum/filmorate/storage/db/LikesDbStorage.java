@@ -59,6 +59,7 @@ public class LikesDbStorage implements LikesStorage {
     @Override
     public List<Film> getPopularFilms(int count) {
         log.info("Отправляем запрос в БД для получения залайканых фильмов");
+
         String sql = "SELECT f.*, "
                 + "m.rating_name AS mpa_rating_name, "
                 + "f.mpa_rating_id, "
@@ -87,7 +88,6 @@ public class LikesDbStorage implements LikesStorage {
             return films;
     }
 
-
     // Метод для получения информации о GENRE по идентификатору фильма
     private List<Genre> getGenresForFilm(Long filmId) {
 
@@ -100,45 +100,41 @@ public class LikesDbStorage implements LikesStorage {
         } catch (DataNotFoundException e) {
             // Если жанров нет, возвращаем пустой список
             return Collections.emptyList();
+            }
+            return films;
+        }
+
+        // Метод для получения информации о DIRECTORS по идентификатору фильма
+        private List<Director> getDirectorsForFilm(Long filmId) {
+            String directorsSql = "SELECT d.id as director_id, d.director_name " + "FROM FILM_DIRECTOR fd " + "JOIN DIRECTORS d ON fd.director_id = d.id " + "WHERE fd.film_id = ?";
+            try {
+                return jdbcTemplate.query(directorsSql, DirectorDbStorage::createDirector, filmId);
+            } catch (DataNotFoundException e) {
+                // Если режиссеров нет, возвращаем пустой список
+                return Collections.emptyList();
+            }
+        }
+
+        // Вспомогательный метод для создания объекта Mpa из ResultSet
+        public static Mpa createMpa (ResultSet rs,int rowNum) throws SQLException {
+            return Mpa.builder()
+                    .id(rs.getLong("mpa_rating_id"))
+                    .name(rs.getString("mpa_rating_name"))
+                    .build();
+        }
+
+        public static Film createFilmWithLikes(ResultSet rs,int rowNum) throws SQLException {
+            log.info("Создаем объект Film после запроса к БД");
+            Mpa mpa = createMpa(rs, rowNum);
+
+            return Film.builder()
+                    .id(rs.getLong("id"))
+                    .name(rs.getString("name"))
+                    .description(rs.getString("description"))
+                    .releaseDate(rs.getDate("release_date").toLocalDate())
+                    .duration(rs.getInt("duration"))
+                    .rating(rs.getInt("rating"))
+                    .likes(rs.getLong("like_count"))
+                    .mpa(mpa).build();
         }
     }
-
-
-    // Метод для получения информации о DIRECTORS по идентификатору фильма
-    private List<Director> getDirectorsForFilm(Long filmId) {
-        String directorsSql = "SELECT d.id as director_id, d.director_name " +
-                "FROM FILM_DIRECTOR fd " +
-                "JOIN DIRECTORS d ON fd.director_id = d.id " +
-                "WHERE fd.film_id = ?";
-        try {
-            return jdbcTemplate.query(directorsSql, DirectorDbStorage::createDirector, filmId);
-        } catch (DataNotFoundException e) {
-            // Если режиссеров нет, возвращаем пустой список
-            return Collections.emptyList();
-        }
-    }
-
-    // Вспомогательный метод для создания объекта Mpa из ResultSet
-    public static Mpa createMpa(ResultSet rs, int rowNum) throws SQLException {
-        return Mpa.builder()
-                .id(rs.getLong("mpa_rating_id"))
-                .name(rs.getString("mpa_rating_name"))
-                .build();
-    }
-
-    public static Film createFilmWithLikes(ResultSet rs, int rowNum) throws SQLException {
-        log.info("Создаем объект Film после запроса к БД");
-        Mpa mpa = createMpa(rs, rowNum);
-
-        return Film.builder()
-                .id(rs.getLong("id"))
-                .name(rs.getString("name"))
-                .description(rs.getString("description"))
-                .releaseDate(rs.getDate("release_date").toLocalDate())
-                .duration(rs.getInt("duration"))
-                .rating(rs.getInt("rating"))
-                .likes(rs.getLong("like_count"))
-                .mpa(mpa)
-                .build();
-    }
-}
