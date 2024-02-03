@@ -15,4 +15,5 @@ public interface FilmStorage extends AbstractStorage<Film> {
 
     List<Film> getCommonFilms(Long userId, Long friendId);
 
+    Film findFilmById(long id); // add-reviews - дополнение в файл
 }

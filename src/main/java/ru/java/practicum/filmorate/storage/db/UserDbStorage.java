@@ -103,4 +103,14 @@ public class UserDbStorage implements UserStorage {
         return new Object[]{user.getEmail(), user.getLogin(), user.getName(), user.getBirthday(), user.getId()};
     }
 
+    @Override
+    // add-reviews - вспомогательный метод для поиска пользователя в базе по id
+    public User findUserById(long id) {
+        String sql = "SELECT * FROM USERS WHERE id = ?";
+        try {
+            return jdbcTemplate.queryForObject(sql, UserDbStorage::createUser, id);
+        } catch (EmptyResultDataAccessException ex) {
+            throw new DataNotFoundException("Данные о пользователе не найдены");
+        }
+    }
 }
