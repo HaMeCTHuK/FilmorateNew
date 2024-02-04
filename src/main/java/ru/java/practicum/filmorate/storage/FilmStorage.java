@@ -12,7 +12,5 @@ public interface FilmStorage extends AbstractStorage<Film> {
     List<Film> getRecommendationsFilms(Long id);
 
     List<Film> searchFilmsByQuery(String query, String by);
-  
-    List<Film> getRecommendationsFilms(Long id);
 
 }

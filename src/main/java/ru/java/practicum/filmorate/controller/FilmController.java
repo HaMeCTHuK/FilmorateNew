@@ -84,7 +84,7 @@ public class FilmController {
         log.info("Вызван метод getFilmsByQuery - поиск фильмов по названию и/или режиссеру" +
                 " с query " + query + " с by " + by);
         return filmService.searchFilmsByQuery(query, by);
-
+    }
     // DELETE /films/{filmId} — удаляем фильм.
     @DeleteMapping("/{filmId}")
     public void deleteUserById(@PathVariable Long filmId) {

@@ -13,6 +13,7 @@ import ru.java.practicum.filmorate.model.Film;
 import ru.java.practicum.filmorate.model.Genre;
 import ru.java.practicum.filmorate.model.Mpa;
 import ru.java.practicum.filmorate.storage.FilmStorage;
+import ru.java.practicum.filmorate.storage.LikesStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -26,6 +27,7 @@ public class FilmDbStorage implements FilmStorage {
 
     private final JdbcTemplate jdbcTemplate;
     private final DirectorDbStorage directorDbStorage;
+    private final LikesStorage likesStorage;
 
     // Метод для добавления нового фильма
     @Override
@@ -402,14 +404,6 @@ public class FilmDbStorage implements FilmStorage {
         return new ArrayList<>();
     }
 
-    // Метод подсчета количества лайков для определенного фильма
-    public Long getFilmLikes(long filmId) {
-        return jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) " +
-                        "FROM LIKES " +
-                        "WHERE FILM_ID=?", Long.class, filmId);
-    }
-
     //Вспомогательный класс для извлечения данных
     private class FilmMapper implements RowMapper<Film> {
         @Override
@@ -422,18 +416,12 @@ public class FilmDbStorage implements FilmStorage {
             film.setReleaseDate(rs.getDate("release_date").toLocalDate());
             film.setDuration(rs.getInt("duration"));
             film.setRating(rs.getInt("rating"));
-            film.setMpa(getMpaRatingForSearch(rs.getLong("MPA_RATING_ID")));
+            film.setMpa(getMpaRatingById(rs.getLong("MPA_RATING_ID")));
             film.setGenres(getGenresForFilm(rs.getLong("id")));
             film.setDirectors(directorDbStorage.getDirectorsForFilm(rs.getLong("id")));
-            film.setLikes(getFilmLikes(rs.getLong("id")));
+            film.setLikes((long) likesStorage.getLikesCountForFilm(rs.getLong("id")));
             return film;
         }
-    }
-
-    // Метод для получения информации для поиска о MpaRating по идентификатору
-    private Mpa getMpaRatingForSearch(Long mpaId) {
-        String mpaSql = "SELECT ID AS MPA_RATING_ID, RATING_NAME AS MPA_RATING_NAME FROM MPARATING WHERE ID =?";
-        return jdbcTemplate.queryForObject(mpaSql, FilmDbStorage::createMpa, mpaId);
     }
 }
 
