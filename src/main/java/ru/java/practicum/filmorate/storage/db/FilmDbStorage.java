@@ -83,7 +83,8 @@ public class FilmDbStorage implements FilmStorage {
         for (Genre genre : film.getGenres()) {
             if (!existingGenreIds.contains(genre.getId())) {
                 existingGenreIds.add(genre.getId());
-                jdbcTemplate.update("INSERT INTO FILM_GENRE (film_id, genre_id) VALUES (?, ?)", film.getId(), genre.getId());
+                jdbcTemplate.update("INSERT INTO FILM_GENRE (film_id, genre_id) VALUES (?, ?)",
+                        film.getId(), genre.getId());
             }
         }
 
@@ -95,7 +96,8 @@ public class FilmDbStorage implements FilmStorage {
         for (Director director : film.getDirectors()) {
             if (!existingDirectorIds.contains(director.getId())) {
                 existingDirectorIds.add(director.getId());
-                jdbcTemplate.update("INSERT INTO FILM_DIRECTOR (film_id, director_id) VALUES (?, ?)", film.getId(), director.getId());
+                jdbcTemplate.update("INSERT INTO FILM_DIRECTOR (film_id, director_id) VALUES (?, ?)",
+                        film.getId(), director.getId());
             }
         }
 
@@ -537,5 +539,6 @@ public class FilmDbStorage implements FilmStorage {
         return films.stream().sorted(Comparator.comparingLong(Film::getLikes).reversed())
                 .collect(Collectors.toList());
     }
+
 }
 
