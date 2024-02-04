@@ -5,11 +5,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.java.practicum.filmorate.event.Events;
-import ru.java.practicum.filmorate.event.FilmLikeEvents;
+import ru.java.practicum.filmorate.event.LikeEvents;
 import ru.java.practicum.filmorate.exception.DataNotFoundException;
 import ru.java.practicum.filmorate.exception.IncorrectParameterException;
 import ru.java.practicum.filmorate.exception.ValidationException;
-import ru.java.practicum.filmorate.model.Event;
 import ru.java.practicum.filmorate.model.Film;
 import ru.java.practicum.filmorate.model.User;
 import ru.java.practicum.filmorate.storage.EventsStorage;
@@ -31,7 +30,6 @@ public class FilmService extends AbstractService<Film> {
     private final UserStorage userStorage;
     private final FilmStorage filmStorage;
     private final LikesStorage likesStorage;
-    private final FilmStorage filmStorage;
     private final GenreStorage genreStorage;
     private final Events event;
 
@@ -39,7 +37,8 @@ public class FilmService extends AbstractService<Film> {
     public FilmService(@Qualifier("filmDbStorage")  FilmStorage filmStorage,
                                                     UserStorage userStorage,
                                                     LikesStorage likesStorage,
-                                                    GenreStorage genreStorage) {
+                                                    GenreStorage genreStorage,
+                                                    EventsStorage eventsStorage) {
 
         this.abstractStorage = filmStorage;
         this.userStorage = userStorage;
@@ -47,7 +46,7 @@ public class FilmService extends AbstractService<Film> {
         this.filmStorage = filmStorage;
         this.genreStorage = genreStorage;
 
-        this.event = new FilmLikeEvents(eventsStorage);
+        this.event = new LikeEvents(eventsStorage);
     }
 
     @Override

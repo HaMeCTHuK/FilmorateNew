@@ -6,7 +6,8 @@ import ru.java.practicum.filmorate.model.Event;
 
 import java.util.List;
 
-public interface EventsStorage extends AbstractStorage<Event> {
+// интерфейс для работы с сущностью Event в БД
+public interface EventsStorage {
     void addEvent(Long userId, Long entityId, EventType eventType, EventOperation eventOperation);
     List<Event> getUserEvents(Long userId);
 }

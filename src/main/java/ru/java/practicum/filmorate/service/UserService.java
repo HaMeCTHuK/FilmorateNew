@@ -24,7 +24,7 @@ public class UserService extends AbstractService<User> {
 
     private final FriendsStorage friendsStorage;
     private final FilmStorage filmStorage;
-    private final Events events;
+    private final Events event;
 
     @Autowired
     public UserService(@Qualifier("userDbStorage") UserStorage userStorage,
@@ -34,7 +34,7 @@ public class UserService extends AbstractService<User> {
         this.abstractStorage = userStorage;
         this.friendsStorage = friendsStorage;
         this.filmStorage = filmStorage;
-        this.events = new FriendEvents(eventsStorage);
+        this.event = new FriendEvents(eventsStorage);
     }
 
     @Override
@@ -82,14 +82,14 @@ public class UserService extends AbstractService<User> {
     public boolean addFriend(Long userId, Long friendId) {
         validateParameters(userId, friendId);
         log.info("Добавляем пользователю ID: " + userId + ", друга с friendId: " + friendId);
-        events.add(userId, friendId);
+        event.add(userId, friendId);
         return friendsStorage.addFriend(userId, friendId);
     }
 
     public boolean deleteFriend(Long userId, Long friendId) {
         validateParameters(userId, friendId);
         log.info("Удаляем у пользователя ID: " + userId + " друга с friendId: " + friendId);
-        events.remove(userId, friendId);
+        event.remove(userId, friendId);
         return friendsStorage.deleteFriend(userId, friendId);
     }
 
@@ -105,7 +105,8 @@ public class UserService extends AbstractService<User> {
     }
 
     public List<Event> getFeed(Long userId) {
+        validateParameter(userId);
         log.info("Получаем ленту событий");
-        return events.getFeed(userId);
+        return event.getFeed(userId);
     }
 }

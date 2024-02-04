@@ -14,7 +14,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -23,30 +22,7 @@ import java.util.List;
 public class EventDbStorage implements EventsStorage {
     private final JdbcTemplate jdbcTemplate;
 
-    @Override
-    public Event create(Event data) {
-        return null;
-    }
-
-    @Override
-    public Event update(Event data) {
-        return null;
-    }
-
-    @Override
-    public List<Event> getAll() {
-        return null;
-    }
-
-    @Override
-    public Event get(Long id) {
-        return null;
-    }
-
-    @Override
-    public void delete(Long id) {
-    }
-
+    // добавление события в таблицу EVENTLOG
     @Override
     public void addEvent(Long userId, Long entityId, EventType eventType, EventOperation eventOperation) {
         String sql = "INSERT INTO EVENTLOG " +
@@ -65,6 +41,7 @@ public class EventDbStorage implements EventsStorage {
         );
     }
 
+    // получение событий из таблицы EVENTLOG по ID пользователя
     @Override
     public List<Event> getUserEvents(Long userId) {
         String sql = "SELECT el.id \"id\", " +
@@ -81,6 +58,7 @@ public class EventDbStorage implements EventsStorage {
         return jdbcTemplate.query(sql, EventDbStorage::createEvent, userId);
     }
 
+    // метод для создания объекта Event
     public static Event createEvent(ResultSet rs, int rowNum) throws SQLException {
         return Event.builder()
                 .id(rs.getLong("id"))
@@ -92,6 +70,7 @@ public class EventDbStorage implements EventsStorage {
                 .build();
     }
 
+    // вспомогательный метод для получения типа события из таблицы EVENTTYPES
     private Long getEventType(EventType eventType) {
         String sql = "SELECT id " +
                 "FROM EVENTTYPES " +
@@ -103,6 +82,7 @@ public class EventDbStorage implements EventsStorage {
         return resultSet.getLong("id");
     }
 
+    // вспомогательный метод для получения операции по событию из таблицы EVENTOP
     private Long getEventOperation(EventOperation eventOperation) {
         String sql = "SELECT id " +
                 "FROM EVENTOP " +

@@ -8,27 +8,27 @@ import ru.java.practicum.filmorate.storage.EventsStorage;
 
 import java.util.List;
 
-// регистрация событий добавление друга пользователя
+// регистрация событий лайков пользователя
 @Slf4j
 @Component
-public class FriendEvents implements Events {
+public class LikeEvents implements Events {
     private final EventsStorage eventsStorage;
 
     @Autowired
-    public FriendEvents(EventsStorage eventsStorage) {
+    public LikeEvents(EventsStorage eventsStorage) {
         this.eventsStorage = eventsStorage;
     }
 
     @Override
     public void add(Long userId, Long entityId) {
-        log.info("Событие добаление друга {} пользователем {} добавлено в БД", userId, entityId);
-        eventsStorage.addEvent(userId, entityId, EventType.FRIEND, EventOperation.ADD);
+        log.info("Событие добавление лайка {} пользователем {} добавлено в БД", entityId, userId);
+        eventsStorage.addEvent(userId, entityId, EventType.LIKE, EventOperation.ADD);
     }
 
     @Override
     public void remove(Long userId, Long entityId) {
-        log.info("Событие удаление друга {} пользователем {} добавлено в БД", userId, entityId);
-        eventsStorage.addEvent(userId, entityId, EventType.FRIEND, EventOperation.REMOVE);
+        log.info("Событие удаление лайка {} пользователем {} добавлено в БД", entityId, userId);
+        eventsStorage.addEvent(userId, entityId, EventType.LIKE, EventOperation.REMOVE);
     }
 
     @Override
