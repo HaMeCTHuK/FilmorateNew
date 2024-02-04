@@ -340,6 +340,7 @@ public class FilmDbStorage implements FilmStorage {
                 .build();
     }
 
+
     // Вспомогательный метод для создания объекта Director из ResultSet
     static Director createDirector(ResultSet rs, int rowNum) throws SQLException {
         return Director.builder()
