@@ -387,17 +387,6 @@ public class FilmDbStorage implements FilmStorage {
         }
     }
 
-
-    // Метод для получения лайков по идентификатору фильма
-    private int getLikesForFilm(Long filmId) {
-        String sql = "SELECT COUNT(*) FROM LIKES WHERE film_id = ?";
-        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, filmId);
-        if (count == null) {
-            return 0;
-        }
-        return count;
-    }
-
     //Метод для получения списка самых популярных фильмов указанного жанра за нужный год.
     @Override
     public List<Film> getPopularWithYearForYear(int limit, long genreId, int year) {
@@ -510,7 +499,6 @@ public class FilmDbStorage implements FilmStorage {
                 film.setGenres(genres);
                 film.setDirectors(directors);
             }
-
             return films;
         }
         //Если совподений нет, возвращаем пустой список
@@ -536,6 +524,5 @@ public class FilmDbStorage implements FilmStorage {
         return films.stream().sorted(Comparator.comparingLong(Film::getLikes).reversed())
                 .collect(Collectors.toList());
     }
-
 }
 
