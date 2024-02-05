@@ -1,4 +1,4 @@
-package ru.java.practicum.filmorate.controller; // add-reviews- new file 1
+package ru.java.practicum.filmorate.controller; // add-reviews - file 1
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,13 +37,13 @@ public class ReviewController {
     @DeleteMapping(value = "/{id}")
     public void deleteReview(@PathVariable long id) {
         log.info("Пытаемся удалить отзыв с id: {}", id);
-        reviewService.deleteReview(id);
+        reviewService.delete(id);
     }
 
     @GetMapping("/{id}")
     public Review findReviewById(@PathVariable long id) {
         log.info("Пытаемся найти отзыв по id: {}", id);
-        return reviewService.findReviewById(id);
+        return reviewService.getData(id);
     }
 
     @GetMapping

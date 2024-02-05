@@ -41,6 +41,7 @@ public class DirectorDbStorage implements DirectorStorage {
 
             film.setGenres(genres);
             film.setDirectors(directors);
+            film.setLikes((long)getLikesForFilm(film.getId()));
         }
         return films;
     }
@@ -65,6 +66,7 @@ public class DirectorDbStorage implements DirectorStorage {
 
             film.setGenres(genres);
             film.setDirectors(directors);
+            film.setLikes((long)getLikesForFilm(film.getId()));
         }
 
         return films;
@@ -164,5 +166,15 @@ public class DirectorDbStorage implements DirectorStorage {
             // Если режиссеров нет, возвращаем пустой список
             return Collections.emptyList();
         }
+    }
+
+    // Метод для получения лайков по идентификатору фильма
+    private int getLikesForFilm(Long filmId) {
+        String sql = "SELECT COUNT(*) FROM LIKES WHERE film_id = ?";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, filmId);
+        if (count == null) {
+            return 0;
+        }
+        return count;
     }
 }

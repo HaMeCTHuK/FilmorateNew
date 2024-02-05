@@ -1,4 +1,4 @@
-package ru.java.practicum.filmorate.model; // add-reviews- new file 3
+package ru.java.practicum.filmorate.model; // add-reviews - file 3
 
 import lombok.Builder;
 import lombok.Data;
@@ -9,7 +9,7 @@ import javax.validation.constraints.NotNull;
 
 @Builder
 @Data
-public class Review {
+public class Review extends BaseUnit {
     private long reviewId;
     @Length(max = 200, message = "Максимальная длина отзыва — 200 символов")
     @NotEmpty

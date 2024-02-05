@@ -1,18 +1,10 @@
-package ru.java.practicum.filmorate.storage; // add-reviews- new file 6
+package ru.java.practicum.filmorate.storage; // add-reviews - file 6
 
 import ru.java.practicum.filmorate.model.Review;
 
 import java.util.List;
 
-public interface ReviewStorage {
-
-    Review create(Review review);
-
-    Review update(Review review);
-
-    void deleteReview(long id);
-
-    Review findReviewById(long id);
+public interface ReviewStorage extends AbstractStorage<Review>{
 
     List<Review> getReviewsOfFilm(long filmId, int count);
 
