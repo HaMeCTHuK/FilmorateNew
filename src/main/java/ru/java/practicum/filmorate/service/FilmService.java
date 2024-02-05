@@ -4,11 +4,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import ru.java.practicum.filmorate.event.Events;
+import ru.java.practicum.filmorate.event.LikeEvents;
 import ru.java.practicum.filmorate.exception.DataNotFoundException;
 import ru.java.practicum.filmorate.exception.IncorrectParameterException;
 import ru.java.practicum.filmorate.exception.ValidationException;
 import ru.java.practicum.filmorate.model.Film;
 import ru.java.practicum.filmorate.model.User;
+import ru.java.practicum.filmorate.storage.EventsStorage;
 import ru.java.practicum.filmorate.storage.FilmStorage;
 import ru.java.practicum.filmorate.storage.GenreStorage;
 import ru.java.practicum.filmorate.storage.LikesStorage;
@@ -25,15 +28,17 @@ public class FilmService extends AbstractService<Film> {
 
     private static final LocalDate LAST_RELEASE_DATE = LocalDate.of(1895, 12, 28);
     private final UserStorage userStorage;
-    private final LikesStorage likesStorage;
     private final FilmStorage filmStorage;
+    private final LikesStorage likesStorage;
     private final GenreStorage genreStorage;
+    private final Events event;
 
     @Autowired
     public FilmService(@Qualifier("filmDbStorage")  FilmStorage filmStorage,
                                                     UserStorage userStorage,
                                                     LikesStorage likesStorage,
-                                                    GenreStorage genreStorage) {
+                                                    GenreStorage genreStorage,
+                                                    EventsStorage eventsStorage) {
 
         this.abstractStorage = filmStorage;
         this.userStorage = userStorage;
@@ -41,6 +46,7 @@ public class FilmService extends AbstractService<Film> {
         this.filmStorage = filmStorage;
         this.genreStorage = genreStorage;
 
+        this.event = new LikeEvents(eventsStorage);
     }
 
     @Override
@@ -76,12 +82,14 @@ public class FilmService extends AbstractService<Film> {
         validateParameters(filmId, userId);
         log.info("Добавляем лайк от пользователя с айди : {} для фильма {}", userId, filmId);
         likesStorage.addLike(filmId, userId);
+        event.add(userId, filmId);
     }
 
     public void deleteLike(long filmId, long userId) {
         validateParameters(filmId, userId);
         log.info("Удаляем лайк от пользователя с айди : {}", userId);
         likesStorage.deleteLike(filmId, userId);
+        event.remove(userId, filmId);
     }
 
     public List<Long> getAllFilmLikes(Long filmId) {
