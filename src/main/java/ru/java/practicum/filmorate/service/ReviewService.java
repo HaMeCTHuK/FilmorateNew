@@ -1,10 +1,14 @@
-package ru.java.practicum.filmorate.service; // add-reviews - file 4
+package ru.java.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.java.practicum.filmorate.event.Events;
+import ru.java.practicum.filmorate.event.LikeEvents;
 import ru.java.practicum.filmorate.model.Review;
+import ru.java.practicum.filmorate.storage.EventsStorage;
 import ru.java.practicum.filmorate.storage.ReviewStorage;
+
 
 import java.util.List;
 
@@ -12,9 +16,15 @@ import java.util.List;
 @Service
 public class ReviewService extends AbstractService<Review> {
 
+    private final ReviewStorage reviewStorage;
+    private final Events event;
+
     @Autowired
-    public ReviewService(ReviewStorage reviewStorage) {
-        this.abstractStorage = reviewStorage;
+    public ReviewService(ReviewStorage reviewStorage, EventsStorage eventsStorage) {
+        this.reviewStorage = reviewStorage;  //Для вызова уникальных методов Review
+        this.abstractStorage = reviewStorage; //Для вызова общих CRUD методов
+        this.event = new LikeEvents(eventsStorage);
+
     }
 
     @Override
@@ -25,7 +35,7 @@ public class ReviewService extends AbstractService<Review> {
         if (review.getContent().isEmpty()) {
             throw new IllegalArgumentException("Отзыв не может быть пустым");
         }
-        // Другие возможные проверки валидации
+
     }
 
     @Override
@@ -40,31 +50,36 @@ public class ReviewService extends AbstractService<Review> {
 
     @Override
     public void validateParameters(Long id, Long otherId) {
-        // Ваша логика валидации параметров, если необходимо
+        throw new UnsupportedOperationException("Метод не используется");
     }
 
     public List<Review> getReviewsOfFilm(long filmId, int count) {
-        // Добавьте вашу логику получения отзывов по фильму
-        return ((ReviewStorage) abstractStorage).getReviewsOfFilm(filmId, count);
+        log.info("Получаем отзыв о фильме");
+        return reviewStorage.getReviewsOfFilm(filmId, count);
     }
 
     public void addLike(long reviewId, long userId) {
-        // Добавьте вашу логику для добавления лайка
-        ((ReviewStorage) abstractStorage).addLike(reviewId, userId);
+        log.info("Добавляем лайк от пользователя к отзыву");
+        reviewStorage.addLike(reviewId, userId);
+        event.add(userId, reviewId);
     }
 
     public void addDislike(long reviewId, long userId) {
-        // Добавьте вашу логику для добавления дизлайка
-        ((ReviewStorage) abstractStorage).addDislike(reviewId, userId);
+        log.info("Добавляем дизлайк от пользователя к отзыву");
+        reviewStorage.addDislike(reviewId, userId);
+        event.add(userId, reviewId);
     }
 
     public void deleteLike(long reviewId, long userId) {
-        // Добавьте вашу логику для удаления лайка
-        ((ReviewStorage) abstractStorage).deleteLike(reviewId, userId);
+        log.info("Удаляем лайк от пользователя к отзыву");
+        reviewStorage.deleteLike(reviewId, userId);
+        event.remove(userId, reviewId);
+
     }
 
     public void deleteDislike(long reviewId, long userId) {
-        // Добавьте вашу логику для удаления дизлайка
-        ((ReviewStorage) abstractStorage).deleteDislike(reviewId, userId);
+        log.info("Удаляем дизлайк от пользователя к отзыву");
+        reviewStorage.deleteDislike(reviewId, userId);
+        event.remove(userId, reviewId);
     }
 }
