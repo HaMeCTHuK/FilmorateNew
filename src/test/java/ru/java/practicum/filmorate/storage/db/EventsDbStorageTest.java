@@ -1,6 +1,7 @@
 package ru.java.practicum.filmorate.storage.db;
 
 import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
@@ -10,7 +11,6 @@ import ru.java.practicum.filmorate.event.EventType;
 import ru.java.practicum.filmorate.model.Film;
 import ru.java.practicum.filmorate.model.Mpa;
 import ru.java.practicum.filmorate.model.User;
-import ru.java.practicum.filmorate.storage.EventsStorage;
 
 import java.time.LocalDate;
 
@@ -19,16 +19,27 @@ import static org.assertj.core.api.Assertions.assertThat;
 @JdbcTest
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class EventsDbStorageTest {
-    @Autowired
+
     private final JdbcTemplate jdbcTemplate;
+    private LikesDbStorage likeStorage;
+    private FilmDbStorage filmStorage;
+    private EventDbStorage eventsStorage;
+    private UserDbStorage userStorage;
+    private FriendsDbStorage friendsDbStorage;
+
+    @BeforeEach
+    void init() {
+        GenreDbStorage genreDbStorage = new GenreDbStorage(jdbcTemplate);
+        DirectorDbStorage directorDbStorage = new DirectorDbStorage(jdbcTemplate, genreDbStorage);
+        likeStorage = new LikesDbStorage(jdbcTemplate, genreDbStorage, directorDbStorage);
+        filmStorage = new FilmDbStorage(jdbcTemplate, likeStorage, directorDbStorage, genreDbStorage);
+        eventsStorage = new EventDbStorage(jdbcTemplate);
+        userStorage = new UserDbStorage(jdbcTemplate);
+        friendsDbStorage = new FriendsDbStorage(jdbcTemplate);
+    }
 
     @Test
     public void insertAddRemoveLikeEventInDb() {
-        LikesDbStorage likeStorage = new LikesDbStorage(jdbcTemplate);
-        DirectorDbStorage directorDbStorage = new DirectorDbStorage(jdbcTemplate);
-        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate, directorDbStorage, likeStorage);
-        UserDbStorage userStorage = new UserDbStorage(jdbcTemplate);
-        EventsStorage eventsStorage = new EventDbStorage(jdbcTemplate);
 
         Film newFilm1 = new Film(
                 "testFilmr1",
@@ -62,9 +73,6 @@ public class EventsDbStorageTest {
 
     @Test
     public void insertRemoveLikeEventInDb() {
-        FriendsDbStorage friendsDbStorage = new FriendsDbStorage(jdbcTemplate);
-        UserDbStorage userStorage = new UserDbStorage(jdbcTemplate);
-        EventsStorage eventsStorage = new EventDbStorage(jdbcTemplate);
 
         User newUser1 = new User(
                 "test1@email.ru",

@@ -1,6 +1,7 @@
 package ru.java.practicum.filmorate.storage.db;
 
 import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
@@ -10,7 +11,6 @@ import ru.java.practicum.filmorate.model.Film;
 import ru.java.practicum.filmorate.model.Genre;
 import ru.java.practicum.filmorate.model.Mpa;
 import ru.java.practicum.filmorate.model.User;
-import ru.java.practicum.filmorate.storage.LikesStorage;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -23,8 +23,21 @@ import static org.junit.jupiter.api.Assertions.*;
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class FilmDbStorageTest {
 
-    @Autowired
     private final JdbcTemplate jdbcTemplate;
+    private DirectorDbStorage directorDbStorage;
+    private LikesDbStorage likeStorage;
+    private FilmDbStorage filmStorage;
+    private UserDbStorage userStorage;
+    private GenreDbStorage genreStorage;
+
+    @BeforeEach
+    void init() {
+        genreStorage = new GenreDbStorage(jdbcTemplate);
+        directorDbStorage = new DirectorDbStorage(jdbcTemplate, genreStorage);
+        likeStorage = new LikesDbStorage(jdbcTemplate, genreStorage, directorDbStorage);
+        filmStorage = new FilmDbStorage(jdbcTemplate, likeStorage, directorDbStorage, genreStorage);
+        userStorage = new UserDbStorage(jdbcTemplate);
+    }
 
     @Test
     void testCreateFilm() {
@@ -39,10 +52,6 @@ class FilmDbStorageTest {
 
         newFilm.getMpa().setId(1);
 
-        // Записываем фильм в базу данных
-        LikesStorage likesStorage = new LikesDbStorage(jdbcTemplate);
-        DirectorDbStorage directorDbStorage = new DirectorDbStorage(jdbcTemplate);
-        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate, directorDbStorage, likesStorage);
         Film createdFilm = filmStorage.create(newFilm);
 
         // Проверяем, что фильм успешно создан
@@ -66,10 +75,6 @@ class FilmDbStorageTest {
 
         newFilm.getMpa().setId(2);
 
-        // Записываем фильм в базу данных
-        LikesStorage likesStorage = new LikesDbStorage(jdbcTemplate);
-        DirectorDbStorage directorDbStorage = new DirectorDbStorage(jdbcTemplate);
-        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate, directorDbStorage, likesStorage);
         Film createdFilm = filmStorage.create(newFilm);
 
         // Меняем данные фильма
@@ -103,10 +108,6 @@ class FilmDbStorageTest {
                 10L);
         newFilm.getMpa().setId(3);
 
-        // Записываем фильм в базу данных
-        LikesStorage likesStorage = new LikesDbStorage(jdbcTemplate);
-        DirectorDbStorage directorDbStorage = new DirectorDbStorage(jdbcTemplate);
-        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate, directorDbStorage, likesStorage);
         Film createdFilm = filmStorage.create(newFilm);
 
         // Получаем фильм по его ID
@@ -131,10 +132,6 @@ class FilmDbStorageTest {
                 10L);
         newFilm.getMpa().setId(5);
 
-        // Записываем фильм в базу данных
-        LikesStorage likesStorage = new LikesDbStorage(jdbcTemplate);
-        DirectorDbStorage directorDbStorage = new DirectorDbStorage(jdbcTemplate);
-        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate, directorDbStorage, likesStorage);
         Film createdFilm = filmStorage.create(newFilm);
 
         // Удаляем фильм из базы данных
@@ -146,10 +143,6 @@ class FilmDbStorageTest {
   
     @Test
     void testGetRecommendationFilmsWithoutCross() {
-        LikesDbStorage likeStorage = new LikesDbStorage(jdbcTemplate);
-        DirectorDbStorage directorDbStorage = new DirectorDbStorage(jdbcTemplate);
-        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate, directorDbStorage, likeStorage);
-        UserDbStorage userStorage = new UserDbStorage(jdbcTemplate);
 
         // Подготавливаем данные для теста
         Film newFilm1 = new Film(
@@ -217,10 +210,6 @@ class FilmDbStorageTest {
 
     @Test
     void testGetRecommendationFilmsWithCross() {
-        LikesDbStorage likeStorage = new LikesDbStorage(jdbcTemplate);
-        DirectorDbStorage directorDbStorage = new DirectorDbStorage(jdbcTemplate);
-        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate, directorDbStorage, likeStorage);
-        UserDbStorage userStorage = new UserDbStorage(jdbcTemplate);
 
         // Подготавливаем данные для теста
         Film newFilm1 = new Film(
@@ -290,10 +279,6 @@ class FilmDbStorageTest {
 
     @Test
     void testGetCommonFilms() {
-        LikesDbStorage likeStorage = new LikesDbStorage(jdbcTemplate);
-        DirectorDbStorage directorDbStorage = new DirectorDbStorage(jdbcTemplate);
-        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate, directorDbStorage, likeStorage);
-        UserDbStorage userStorage = new UserDbStorage(jdbcTemplate);
 
         // Подготавливаем данные для теста
         Film newFilm1 = new Film(
@@ -338,11 +323,6 @@ class FilmDbStorageTest {
   
  @Test
     public void isGetPopularWithYearForYearOk() {
-
-        LikesDbStorage likeStorage = new LikesDbStorage(jdbcTemplate);
-        DirectorDbStorage directorDbStorage = new DirectorDbStorage(jdbcTemplate);
-        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate, directorDbStorage, likeStorage);
-        GenreDbStorage genreStorage = new GenreDbStorage(jdbcTemplate);
 
         // Подготавливаем данные для теста
         Film newFilm = new Film(
@@ -395,11 +375,6 @@ class FilmDbStorageTest {
 
     @Test
     public void isGetPopularWithGenreOk() {
-
-        LikesDbStorage likeStorage = new LikesDbStorage(jdbcTemplate);
-        DirectorDbStorage directorDbStorage = new DirectorDbStorage(jdbcTemplate);
-        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate, directorDbStorage, likeStorage);
-        GenreDbStorage genreStorage = new GenreDbStorage(jdbcTemplate);
 
         // Подготавливаем данные для теста
         Film newFilm = new Film(
@@ -454,11 +429,6 @@ class FilmDbStorageTest {
 
     @Test
     public void isGetPopularWithYearOk() {
-
-        LikesDbStorage likeStorage = new LikesDbStorage(jdbcTemplate);
-        DirectorDbStorage directorDbStorage = new DirectorDbStorage(jdbcTemplate);
-        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate, directorDbStorage, likeStorage);
-        GenreDbStorage genreStorage = new GenreDbStorage(jdbcTemplate);
 
         // Подготавливаем данные для теста
         Film newFilm = new Film(
