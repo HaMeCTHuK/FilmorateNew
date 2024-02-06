@@ -1,6 +1,7 @@
 package ru.java.practicum.filmorate.storage.db;
 
 import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
@@ -10,7 +11,7 @@ import ru.java.practicum.filmorate.model.Director;
 import ru.java.practicum.filmorate.model.Film;
 import ru.java.practicum.filmorate.model.Mpa;
 import ru.java.practicum.filmorate.model.User;
-import ru.java.practicum.filmorate.storage.DirectorStorage;
+
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -23,15 +24,21 @@ import static org.junit.jupiter.api.Assertions.*;
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class DirectorDbStorageTest {
 
-    @Autowired
     private final JdbcTemplate jdbcTemplate;
+    private DirectorDbStorage directorDbStorage;
+    private LikesDbStorage likeStorage;
+    private FilmDbStorage filmStorage;
+
+    @BeforeEach
+    void init() {
+         GenreDbStorage genreDbStorage = new GenreDbStorage(jdbcTemplate);
+         directorDbStorage = new DirectorDbStorage(jdbcTemplate, genreDbStorage);
+         likeStorage = new LikesDbStorage(jdbcTemplate, genreDbStorage, directorDbStorage);
+         filmStorage = new FilmDbStorage(jdbcTemplate, likeStorage, directorDbStorage, genreDbStorage);
+    }
 
     @Test
     void getSortedDirectorListByYear() {
-
-        LikesDbStorage likeStorage = new LikesDbStorage(jdbcTemplate);
-        DirectorDbStorage directorDbStorage = new DirectorDbStorage(jdbcTemplate);
-        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate, directorDbStorage, likeStorage);
 
         //Создаем режиссера и добавляем в бд
         Director director = Director.builder().id(1).name("Boss").build();
@@ -73,10 +80,6 @@ class DirectorDbStorageTest {
 
     @Test
     void getSortedDirectorListByLikes() {
-
-        LikesDbStorage likeStorage = new LikesDbStorage(jdbcTemplate);
-        DirectorDbStorage directorDbStorage = new DirectorDbStorage(jdbcTemplate);
-        FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate, directorDbStorage, likeStorage);
 
         //Создаем режиссера и добавляем в бд
         Director director = Director.builder().id(1).name("Boss").build();
@@ -130,33 +133,30 @@ class DirectorDbStorageTest {
     @Test
     void createDirector() {
 
-        DirectorStorage directorStorage = new DirectorDbStorage(jdbcTemplate);
-
         List<Director> directors = new ArrayList<>();
         Director director = Director.builder().id(1).name("Boss").build();
         directors.add(director);
 
         // Записываем режиссера в базу данных
-        Director createdDirector = directorStorage.create(director);
+        Director createdDirector = directorDbStorage.create(director);
 
         // Проверяем, что режиссер успешно создан
         assertThat(createdDirector).isNotNull();
-        assertThat(directorStorage.get(createdDirector.getId())).isNotNull();
+        assertThat(directorDbStorage.get(createdDirector.getId())).isNotNull();
         assertThat(createdDirector.getName()).isEqualTo(director.getName());
     }
 
     @Test
     void updateDirector() {
-        DirectorStorage directorStorage = new DirectorDbStorage(jdbcTemplate);
 
         List<Director> directors = new ArrayList<>();
         Director director = Director.builder().id(1).name("Boss").build();
         directors.add(director);
-        Director createdDirector = directorStorage.create(director);
+        Director createdDirector = directorDbStorage.create(director);
         String updatedName = "Updated DirectorName";
 
         createdDirector.setName(updatedName);
-        Director updatedDirector = directorStorage.update(createdDirector);
+        Director updatedDirector = directorDbStorage.update(createdDirector);
 
         assertEquals(createdDirector.getId(), updatedDirector.getId());
         assertEquals(updatedName, updatedDirector.getName());
@@ -166,11 +166,9 @@ class DirectorDbStorageTest {
     @Test
     void getAllDirectors() {
 
-        DirectorStorage directorStorage = new DirectorDbStorage(jdbcTemplate);
-
         Director director = Director.builder().id(1).name("Boss").build();
-        Director createdDirector = directorStorage.create(director);
-        List<Director> directors = directorStorage.getAll();
+        Director createdDirector = directorDbStorage.create(director);
+        List<Director> directors = directorDbStorage.getAll();
 
         assertNotNull(directors);
         assertFalse(directors.isEmpty());
@@ -179,11 +177,9 @@ class DirectorDbStorageTest {
     @Test
     void getDirector() {
 
-        DirectorStorage directorStorage = new DirectorDbStorage(jdbcTemplate);
-
         Director director = Director.builder().id(1).name("Boss").build();
-        Director createdDirector = directorStorage.create(director);
-        Director recivedDirectorById = directorStorage.get(createdDirector.getId());
+        Director createdDirector = directorDbStorage.create(director);
+        Director recivedDirectorById = directorDbStorage.get(createdDirector.getId());
 
         assertNotNull(recivedDirectorById);
         assertEquals(createdDirector.getId(), recivedDirectorById.getId());
@@ -192,15 +188,13 @@ class DirectorDbStorageTest {
     @Test
     void deleteDirector() {
 
-        DirectorStorage directorStorage = new DirectorDbStorage(jdbcTemplate);
-
         Director director = Director.builder().id(1).name("Boss").build();
-        Director createdDirector = directorStorage.create(director);
+        Director createdDirector = directorDbStorage.create(director);
 
         assertNotNull(createdDirector);
 
-        directorStorage.delete(createdDirector.getId());
+        directorDbStorage.delete(createdDirector.getId());
 
-        assertThrows(DataNotFoundException.class, () -> directorStorage.get(createdDirector.getId()));
+        assertThrows(DataNotFoundException.class, () -> directorDbStorage.get(createdDirector.getId()));
     }
 }

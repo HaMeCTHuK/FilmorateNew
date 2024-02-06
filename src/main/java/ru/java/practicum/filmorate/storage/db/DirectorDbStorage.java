@@ -23,6 +23,7 @@ import java.util.Map;
 public class DirectorDbStorage implements DirectorStorage {
 
     private final JdbcTemplate jdbcTemplate;
+    private final GenreDbStorage genreDbStorage;
 
     // Метод получения списка фильмов режисера с сортировкой по году
     @Override
@@ -36,12 +37,12 @@ public class DirectorDbStorage implements DirectorStorage {
 
         // Добавляем жанры и режиссеров к каждому фильму
         for (Film film : films) {
-            List<Genre> genres = getGenresForFilm(film.getId());
+            List<Genre> genres = genreDbStorage.getGenresForFilm(film.getId());
             List<Director> directors = getDirectorsForFilm(film.getId());
 
             film.setGenres(genres);
             film.setDirectors(directors);
-            film.setLikes((long)getLikesForFilm(film.getId()));
+            film.setLikes(getLikesCountForFilm((film.getId())));
         }
         return films;
     }
@@ -61,12 +62,12 @@ public class DirectorDbStorage implements DirectorStorage {
 
         // Добавляем жанры и режиссеров к каждому фильму
         for (Film film : films) {
-            List<Genre> genres = getGenresForFilm(film.getId());
+            List<Genre> genres = genreDbStorage.getGenresForFilm(film.getId());
             List<Director> directors = getDirectorsForFilm(film.getId());
 
             film.setGenres(genres);
             film.setDirectors(directors);
-            film.setLikes((long)getLikesForFilm(film.getId()));
+            film.setLikes(getLikesCountForFilm((film.getId())));
         }
 
         return films;
@@ -140,20 +141,6 @@ public class DirectorDbStorage implements DirectorStorage {
                 .build();
     }
 
-    // Метод для получения информации о GENRE по идентификатору фильма
-    private List<Genre> getGenresForFilm(Long filmId) {
-        String genresSql = "SELECT g.id as genre_id, g.genre_name " +
-                "FROM FILM_GENRE fg " +
-                "JOIN GENRES g ON fg.genre_id = g.id " +
-                "WHERE fg.film_id = ?";
-        try {
-            return jdbcTemplate.query(genresSql, FilmDbStorage::createGenre, filmId);
-        } catch (DataNotFoundException e) {
-            // Если жанров нет, возвращаем пустой список
-            return Collections.emptyList();
-        }
-    }
-
     // Метод для получения информации о DIRECTORS по идентификатору фильма
     protected List<Director> getDirectorsForFilm(Long filmId) {
         String directorsSql = "SELECT d.id as director_id, d.director_name " +
@@ -168,12 +155,12 @@ public class DirectorDbStorage implements DirectorStorage {
         }
     }
 
-    // Метод для получения лайков по идентификатору фильма
-    private int getLikesForFilm(Long filmId) {
+    // Метод для получения лайков для конкретного фильма
+    public Long getLikesCountForFilm(Long filmId) {
         String sql = "SELECT COUNT(*) FROM LIKES WHERE film_id = ?";
-        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, filmId);
+        Long count = jdbcTemplate.queryForObject(sql, Long.class, filmId);
         if (count == null) {
-            return 0;
+            return 0L;
         }
         return count;
     }

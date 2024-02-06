@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-import ru.java.practicum.filmorate.exception.DataNotFoundException;
 import ru.java.practicum.filmorate.model.Director;
 import ru.java.practicum.filmorate.model.Film;
 import ru.java.practicum.filmorate.model.Genre;
@@ -13,7 +12,6 @@ import ru.java.practicum.filmorate.storage.LikesStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collections;
 import java.util.List;
 
 @Component
@@ -22,6 +20,8 @@ import java.util.List;
 public class LikesDbStorage implements LikesStorage {
 
     private final JdbcTemplate jdbcTemplate;
+    private final GenreDbStorage genreDbStorage;
+    private final DirectorDbStorage directorDbStorage;
 
     // Метод для добавления лайка фильма от конкретного пользователя
     @Override
@@ -39,11 +39,11 @@ public class LikesDbStorage implements LikesStorage {
 
     // Метод для получения лайков для конкретного фильма
     @Override
-    public int getLikesCountForFilm(Long filmId) {
+    public Long getLikesCountForFilm(Long filmId) {
         String sql = "SELECT COUNT(*) FROM LIKES WHERE film_id = ?";
-        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, filmId);
+        Long count = jdbcTemplate.queryForObject(sql, Long.class, filmId);
         if (count == null) {
-            return 0;
+            return 0L;
         }
         return count;
     }
@@ -79,39 +79,13 @@ public class LikesDbStorage implements LikesStorage {
 
         // Добавляем жанры и режиссеров к каждому фильму
         for (Film film : films) {
-            List<Genre> genres = getGenresForFilm(film.getId());
-            List<Director> directors = getDirectorsForFilm(film.getId());
+            List<Genre> genres = genreDbStorage.getGenresForFilm(film.getId());
+            List<Director> directors = directorDbStorage.getDirectorsForFilm(film.getId());
 
             film.setGenres(genres);
             film.setDirectors(directors);
         }
             return films;
-    }
-
-    // Метод для получения информации о GENRE по идентификатору фильма
-    private List<Genre> getGenresForFilm(Long filmId) {
-
-        String genresSql = "SELECT g.id as genre_id, g.genre_name " +
-                "FROM FILM_GENRE fg " +
-                "JOIN GENRES g ON fg.genre_id = g.id " +
-                "WHERE fg.film_id = ?";
-        try {
-            return jdbcTemplate.query(genresSql, FilmDbStorage::createGenre, filmId);
-        } catch (DataNotFoundException e) {
-            // Если жанров нет, возвращаем пустой список
-            return Collections.emptyList();
-        }
-    }
-
-    // Метод для получения информации о DIRECTORS по идентификатору фильма
-    private List<Director> getDirectorsForFilm(Long filmId) {
-        String directorsSql = "SELECT d.id as director_id, d.director_name " + "FROM FILM_DIRECTOR fd " + "JOIN DIRECTORS d ON fd.director_id = d.id " + "WHERE fd.film_id = ?";
-        try {
-            return jdbcTemplate.query(directorsSql, DirectorDbStorage::createDirector, filmId);
-        } catch (DataNotFoundException e) {
-            // Если режиссеров нет, возвращаем пустой список
-            return Collections.emptyList();
-        }
     }
 
     // Вспомогательный метод для создания объекта Mpa из ResultSet
@@ -134,6 +108,7 @@ public class LikesDbStorage implements LikesStorage {
                 .duration(rs.getInt("duration"))
                 .rating(rs.getInt("rating"))
                 .likes(rs.getLong("like_count"))
-                .mpa(mpa).build();
+                .mpa(mpa)
+                .build();
     }
 }
