@@ -18,8 +18,6 @@ public class DirectorController {
     private final DirectorService directorService;
 
 
-
-
     //Создание режиссёра
     @PostMapping
     public Director createDirector(@RequestBody @Valid Director director) {
