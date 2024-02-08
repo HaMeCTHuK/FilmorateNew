@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.java.practicum.filmorate.model.Film;
-import ru.java.practicum.filmorate.model.Mpa;
 import ru.java.practicum.filmorate.model.Review;
 import ru.java.practicum.filmorate.model.User;
 import ru.java.practicum.filmorate.service.FilmService;

@@ -9,7 +9,6 @@ import ru.java.practicum.filmorate.model.Review;
 import ru.java.practicum.filmorate.storage.EventsStorage;
 import ru.java.practicum.filmorate.storage.ReviewStorage;
 
-
 import java.util.List;
 
 @Slf4j

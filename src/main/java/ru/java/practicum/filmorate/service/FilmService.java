@@ -11,11 +11,7 @@ import ru.java.practicum.filmorate.exception.IncorrectParameterException;
 import ru.java.practicum.filmorate.exception.ValidationException;
 import ru.java.practicum.filmorate.model.Film;
 import ru.java.practicum.filmorate.model.User;
-import ru.java.practicum.filmorate.storage.EventsStorage;
-import ru.java.practicum.filmorate.storage.FilmStorage;
-import ru.java.practicum.filmorate.storage.GenreStorage;
-import ru.java.practicum.filmorate.storage.LikesStorage;
-import ru.java.practicum.filmorate.storage.UserStorage;
+import ru.java.practicum.filmorate.storage.*;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
